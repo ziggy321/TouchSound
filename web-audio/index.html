@@ -1,0 +1,30 @@
+<!doctype html>
+<html>
+<head>
+	<meta name="viewport" content="width=device-width,initial-scale=1">
+	<title>Audio Recorder</title>
+
+	<script src="js/recorder.js"></script>
+	<script src="js/main.js"></script>
+	<style>
+	html { overflow: hidden; }
+	body { 
+		font: 14pt Arial, sans-serif; 
+		background: black;
+		display: flex;
+		flex-direction: column;
+		height: 100vh;
+		width: 100%;
+		margin: 0 0;
+	}
+
+	</style>
+</head>
+<body>
+	
+	<div id="controls">
+		<img id="record" src="img/recordButton.jpg" onclick="switchRecording(this);">
+		<a id="save" href="#"><img src="img/saveButton.jpg"></a>
+	</div>
+</body>
+</html>
