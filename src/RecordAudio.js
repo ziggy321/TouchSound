@@ -1,4 +1,4 @@
-import recorder from 'lib/recorder.js';
+import Recorder from 'lib/recorder.js';
 
 export class RecordAudio{
     constructor({$trackElement}){
