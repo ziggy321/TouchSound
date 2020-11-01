@@ -1,9 +1,6 @@
-class RecordAudio{
-    constructor(){
-        navigator.mediaDevices.getUserMedia({ audio: true })
-        .then(successCallback)
-        .catch(failureCallback);
-
-        audioSourceNode.connect(audioDestination);
+export class RecordAudio{
+    constructor({$trackElement}){
+        const $recordAudio = $trackElement.querySelector('.recordAudio');
+        $recordAudio.style = 'display: block;'
     }
 }
