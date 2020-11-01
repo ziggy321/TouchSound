@@ -1,5 +1,6 @@
 import { LoadAudio } from "./LoadAudio.js";
 import { PlayAudio } from "./PlayAudio.js";
+import { RecordAudio } from "./RecordAudio.js";
 import { SaveAudio } from "./SaveAudio.js";
 
 export class App {
@@ -56,6 +57,10 @@ export class App {
                 this.audioCurrent.start();
             }
         });
+
+        this.recordAudio = new RecordAudio({
+            
+        })
 
         this.saveAudio = new SaveAudio({
             putFileName: () => {

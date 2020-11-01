@@ -4,8 +4,6 @@
 	<meta name="viewport" content="width=device-width,initial-scale=1">
 	<title>Audio Recorder</title>
 
-	<script src="js/recorder.js"></script>
-	<script src="js/main.js"></script>
 	<style>
 	html { overflow: hidden; }
 	body { 
@@ -23,8 +21,11 @@
 <body>
 	
 	<div id="controls">
-		<img id="record" src="img/recordButton.jpg" onclick="switchRecording(this);">
-		<a id="save" href="#"><img src="img/saveButton.jpg"></a>
+		<button class="recordAudio">
+			<img src="img/recordButton.jpg">
+		</button>
+		<a id="recordSave" href="#"></a>
 	</div>
+	<script src="main.js"></script>
 </body>
 </html>
