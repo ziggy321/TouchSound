@@ -7,21 +7,50 @@
         <link rel="stylesheet" href="style.css">
     </head>
     <body>
-        <button class="loadAudio">
-            <img src="img/loadButton.JPG" alt="" class="loadButton">
-        </button>
-        <button class="recordAudio">
-            <img src="img/recordButton.JPG" alt="" class="recordButton">
-        </button>
-        <button class="playAudio">
-            <img src="img/playButton.JPG" alt="" class="playButton">
-        </button>
-        <div class="DownloadAudio">
-            <button class="SaveAudio">
-                <img src="img/saveButton.JPG" alt="" class="saveButton">
+        <div style='display: flex'>
+            <div class="downloadAudio">
+                <button class="SaveAudio">
+                    <img src="img/saveButton.JPG" alt="" class="button">
+                </button>
+            </div>
+
+            <button class="playAudio">
+                <img src="img/playButton.JPG" alt="" class="button">
+            </button>
+            <button class="pauseAudio">
+                <img src="img/pauseButton.JPG" alt="" class="button">
+            </button>
+            <button class="stopAudio">
+                <img src="img/stopButton.JPG" alt="" class="button">
+            </button>
+
+            <button class="selectAudio">
+                <img src="img/selectButton.JPG" alt="" class="button">
+            </button>
+            <button class="moveAudio">
+                <img src="img/moveButton.JPG" alt="" class="button">
+            </button>
+            
+            <button class="copyAudio">
+                <img src="img/copyButton.JPG" alt="" class="button">
+            </button>
+            <button class="cutAudio">
+                <img src="img/cutButton.JPG" alt="" class="button">
+            </button>
+            <button class="pasteAudio">
+                <img src="img/pasteButton.JPG" alt="" class="button">
             </button>
         </div>
-        <audio class="currentAudio"></audio>
+
+        <div class="trackList"></div>
+
+        <button class="createTrack">
+            <img src="img/createTrackButton.JPG" alt="" class="button">
+        </button>
+        <button class="deleteTrack">
+            <img src="img/deleteTrackButton.JPG" alt="" class="button">
+        </button>
+
         <script src="main.js" type="module"></script>
     </body>
 </html>
