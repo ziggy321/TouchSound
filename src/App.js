@@ -1,60 +1,52 @@
-import { LoadAudio } from "./LoadAudio.js";
 import { PlayAudio } from "./PlayAudio.js";
 import { RecordAudio } from "./RecordAudio.js";
 import { SaveAudio } from "./SaveAudio.js";
+import { AudioTrack } from "./AudioTrack.js";
 
 export class App {
-    audioContext = null;
-    audioSource = null;
+    audioTracks = [];
+    trackCreationCount = 0;
+    selectedTrackID = 0;
 
-    audioGain = null;
+    startTime = 0; // 현재 재생바가 0에서 언제부터 움직이기 시작했는지 결정
+    currentTime = 0; // 현재 재생바의 위치를 결정
+    stopped = true;
 
-    audioCurrent = null;
-    audioDestination = null;
+    canvasLengthPerDuration = 20; // 오디오 길이에 따른 캔버스 길이 비율을 결정
+    sampleDensity = 2; // 오디오 길이 1픽셀당 샘플 몇 개 그려지는지 결정
+    copiedBuffer = null;
 
     constructor(){
-        this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        this.audioSource = this.audioContext.createBufferSource();
+        this.$trackList = document.querySelector('.trackList')
+        this.createTrack();
 
-        this.audioGain = this.audioContext.createGain();
+        this.$createTrackButton = document.querySelector('.createTrack')
+        this.$deleteTrackButton = document.querySelector('.deleteTrack')
 
-        this.audioSource.connect(this.audioGain);
-        this.audioGain.connect(this.audioCurrent);
-
-        this.audioDestination = this.audioContext.destination;
-
-        this.loadAudio = new LoadAudio({
-            fetchFile: () => {
-                const $input = document.createElement("input");
-                $input.type = "file";
-                $input.accept = "audio/*";
-                $input.onchange = event => {
-                    const file = event.target.files[0];
-                    if(file.type.substring(0, 5) !== "audio"){
-                        alert("올바른 파일 형식이 아닙니다.");
-                        return;
-                    }
-                    file.arrayBuffer()
-                    .then(buffer => this.audioContext.decodeAudioData(buffer))
-                    .then(audioBuffer => {
-                        let audioBufferSourceNode = this.audioContext.createBufferSource();
-                        audioBufferSourceNode.buffer = audioBuffer;
-                        console.log(audioBufferSourceNode);
-                        this.audioCurrent = audioBufferSourceNode;
-                    })
-                    .catch(e => console.log(e));
-                };
-                $input.click();
-            }
-        });
+        this.$createTrackButton.addEventListener('click', this.createTrack);
+        this.$deleteTrackButton.addEventListener('click', this.deleteTrack)
 
         this.playAudio = new PlayAudio({
             playAudio: () => {
-                this.audioCurrent.connect(this.audioContext.destination)
-                if (this.audioContext.state === 'suspended') {
-                    this.audioContext.resume();
+                console.log('playstart')
+                for(let i = 0; i < this.audioTracks.length; i++){
+                    let currentTrack = this.audioTracks[i];
+                    currentTrack.play(this.currentTime);
                 }
-                this.audioCurrent.start();
+            },
+            pauseAudio: () => {
+                console.log('paused')
+                for(let i = 0; i < this.audioTracks.length; i++){
+                    let currentTrack = this.audioTracks[i];
+                    currentTrack.pause();
+                }
+            },
+            stopAudio: () => {
+                console.log('stopped')
+                for(let i = 0; i < this.audioTracks.length; i++){
+                    let currentTrack = this.audioTracks[i];
+                    currentTrack.stop();
+                }
             }
         });
 
@@ -65,8 +57,11 @@ export class App {
         this.saveAudio = new SaveAudio({
             putFileName: () => {
                 if(this.saveAudio.inputBlankOpen) return;
+
+                const currentTrack = this.audioTracks[0];
+
                 this.saveAudio.inputBlankOpen = true;
-                const $downloadAudio = document.querySelector('.DownloadAudio')
+                const $downloadAudio = document.querySelector('.downloadAudio')
                 const $filename = document.createElement('input')
                 $filename.type = 'text'
                 $filename.placeholder = '파일명을 입력하세요.'
@@ -74,23 +69,28 @@ export class App {
         
                 $filename.addEventListener('keydown', event => {
                     if(event.key == 'Enter'){
-                        this.$saveAudio.readyToSaveFile(this.audioContext, this.audioCurrent, event.target.value);
+                        this.$saveAudio.readyToSaveFile(currentTrack.audioContext, currentTrack.audioCurrent, event.target.value);
                         $downloadAudio.innerHTML = ``;
                         this.$saveAudio.inputBlankOpen = false;
                     }
                 })
             }
         });
-
-        this.volumeChange = new VolumeChange({
-            setVolume: volume => {
-                this.audioGain.gain.setValueAtTime(volume, this.audioContext.currentTime);
-                //this.audioGain.gain.value = volume;
-            }
-        });
+        
     }
 
-    
-    
-                
+    createTrack = () => {
+        const track = new AudioTrack({
+            app: this,
+            id: this.trackCreationCount
+        })
+        this.audioTracks.push(track);
+        this.trackCreationCount += 1;
+    }
+    deleteTrack = () => {
+        if(this.audioTracks.length < 2) return;
+        this.audioTracks.pop();
+        this.$trackList.removeChild(this.$trackList.lastChild);
+    }
+
 }

@@ -1,3 +1,3 @@
-import { App } from 'src/App.js'
+import {App} from "./src/App.js";
 
 new App()

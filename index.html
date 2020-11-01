@@ -1,31 +1,68 @@
-<!doctype html>
-<html>
-<head>
-	<meta name="viewport" content="width=device-width,initial-scale=1">
-	<title>Audio Recorder</title>
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width initial-scale=1.0">
+        <title>TouchSound - Touch and Make Your Own Sound</title>
+        <style>
+	      html { overflow: hidden; }
+	      body { 
+		      font: 14pt Arial, sans-serif; 
+		      background: black;
+		      display: flex;
+		      flex-direction: column;
+		       height: 100vh;
+		      width: 100%;
+		      margin: 0 0;
+	      }
+	      </style>
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body>
+        <div style='display: flex'>
+            <div class="downloadAudio">
+                <button class="SaveAudio">
+                    <img src="img/saveButton.JPG" alt="" class="button">
+                </button>
+            </div>
 
-	<style>
-	html { overflow: hidden; }
-	body { 
-		font: 14pt Arial, sans-serif; 
-		background: black;
-		display: flex;
-		flex-direction: column;
-		height: 100vh;
-		width: 100%;
-		margin: 0 0;
-	}
+            <button class="playAudio">
+                <img src="img/playButton.JPG" alt="" class="button">
+            </button>
+            <button class="pauseAudio">
+                <img src="img/pauseButton.JPG" alt="" class="button">
+            </button>
+            <button class="stopAudio">
+                <img src="img/stopButton.JPG" alt="" class="button">
+            </button>
 
-	</style>
-</head>
-<body>
-	
-	<div id="controls">
-		<button class="recordAudio">
-			<img src="img/recordButton.jpg">
-		</button>
-		<a id="recordSave" href="#"></a>
-	</div>
-	<script src="main.js"></script>
-</body>
+            <button class="selectAudio">
+                <img src="img/selectButton.JPG" alt="" class="button">
+            </button>
+            <button class="moveAudio">
+                <img src="img/moveButton.JPG" alt="" class="button">
+            </button>
+            
+            <button class="copyAudio">
+                <img src="img/copyButton.JPG" alt="" class="button">
+            </button>
+            <button class="cutAudio">
+                <img src="img/cutButton.JPG" alt="" class="button">
+            </button>
+            <button class="pasteAudio">
+                <img src="img/pasteButton.JPG" alt="" class="button">
+            </button>
+        </div>
+
+        <div class="trackList"></div>
+
+        <button class="createTrack">
+            <img src="img/createTrackButton.JPG" alt="" class="button">
+        </button>
+        <button class="deleteTrack">
+            <img src="img/deleteTrackButton.JPG" alt="" class="button">
+        </button>
+
+        <script src="main.js" type="module"></script>
+    </body>
 </html>
