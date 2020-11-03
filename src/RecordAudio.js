@@ -1,10 +1,10 @@
-import Recorder from 'lib/recorder.js';
+import { Recorder } from '../lib/recorder.js';
 
 export class RecordAudio{
     constructor({$trackElement}){
-        const $recordAudio = document.querySelector('.recordAudio')
-        $recordAudio.style = 'display: block;'
-        $recordAudio.addEventListener('click', switchRecording)
+        this.$recordAudio = document.querySelector('.recordAudio')
+        this.$recordAudio.style = 'display: block;'
+        this.$recordAudio.addEventListener('click', this.switchRecording.bind(this))
 
         this.audioContext = new AudioContext();
         this.audioInput= null 
@@ -14,68 +14,47 @@ export class RecordAudio{
         this.analyserContext= null
         this.recIndex = 0
 
-        this.isRecording = false;   
-        this.micStream;
-    }
-
-    gotBuffers( buffers ) {
-        // var canvas = document.getElementById( "wavedisplay" );
-        // drawBuffer( canvas.width, canvas.height, canvas.getContext('2d'), buffers[0] );
-
-        // the ONLY time gotBuffers is called is right after a new recording is completed - 
-        // so here's where we should set up the download.
-        this.audioRecorder.exportWAV( doneEncoding );
-    }
-
-    doneEncoding(blob) {
-        this.Recorder.setupDownload(blob, "myRecord" + ((recIndex<10)?"0":"")+recIndex+".wav");
-        this.recIndex++;
+        this.lock = false;   
+        this.stopped = false;
+        this.micStream = null;
     }
 
     switchRecording() {
-        if(isRecording) {
+        if(this.lock) return;
+        this.lock = true;
+        if(this.$recordAudio.classList.contains('recording')) {
+            // if(!this.audioRecorder) {
+            //     return;
+            // }
             console.log('stop recording')
             //stop recording
-            this.audioRecorder.stop();
-            this.isRecording = false;
-            this.audioRecorder.getBuffers(this.gotBuffers);
-            exitAudio();
+            this.$recordAudio.classList.remove('recording')
+            // this.audioRecorder.stop();
+            // this.audioRecorder.getBuffers(this.gotBuffers.bind(this));
+            this.exitAudio.call(this);
         } else {
             console.log('start recording')
             //start recording
-
-            this.initAudio();
+            this.$recordAudio.classList.add('recording')
+            this.initAudio.call(this);
         }
+        this.lock = false;
     }
 
     gotStream(stream) {
-        this.inputPoint = this.audioContext.createGain();
-
         this.realAudioInput = this.audioContext.createMediaStreamSource(stream);
         this.micStream = stream;
 
-        this.audioInput=this.realAudioInput;
-        this.audioInput.connect(inputPoint);
-    
-        analyserNode = this.audioContext.createAnalyser();
-        analyserNode.fftSize =2048;
-        this.inputPoint.connect(analyserNode);
+        console.log('got stream')
 
-        zeroGain= this.audioContext.createGain();
-        //zeroGain.gain.value= 0.0;
-        this.inputPoint.connect(zeroGain);
-        zeroGain.connect( audioContext.destination);
-        //updateAnalysers();
-
-        console.log('get stream and init recorder')
-        this.audioRecorder = new Recorder(inputPoint);
-
-        return true;
+        //this.audioRecorder = new Recorder(this.realAudioInput);
+        return this.realAudioInput
     }
 
     initAudio() {
-        if (!navigator.getUserMedia)
+        if (!navigator.getUserMedia){
             navigator.getUserMedia = navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+        }
 
         navigator.mediaDevices.getUserMedia(
             {
@@ -89,12 +68,10 @@ export class RecordAudio{
                 "optional": []
             },
             })
-            .then(stream => this.gotStream(stream))
-            .then(() => {
-                this.isRecording = true;
-                console.log(audioRecorder)
-                this.audioRecorder.clear();
-                this.audioRecorder.record();
+            .then(stream => {
+                this.$trackElement.audioSource = this.gotStream.call(this, stream)
+                // this.audioRecorder.clear();
+                // this.audioRecorder.record();
             })
             .catch(e => {
                 alert('Error getting audio');
@@ -103,7 +80,6 @@ export class RecordAudio{
     }
 
     exitAudio = () => {
-        console.log(micStream)
         this.micStream.getTracks().forEach(function(track) {
             track.stop();
         });
