@@ -30,6 +30,7 @@ export class AudioTrack{
                 <button class="recordAudio">
                     <img src="img/recordButton.JPG" alt="" class="buttonInTrack">
                 </button>
+                <a class="saveRecord">Save Record</a>
                 <button class="muteAudio">
                     <img src="img/muteButton.JPG" alt="" class="buttonInTrack">
                 </button>
