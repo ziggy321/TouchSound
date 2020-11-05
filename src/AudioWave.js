@@ -10,7 +10,7 @@ export class AudioWave{
             z-index: 2;
             position: absolute;
             left: 2px;
-            top: ${2 + (this.channel.track.$canvas.height / this.channel.track.numberOfChannels - 2 + 1) * this.channelNum}px;
+            top: ${2 + (this.channel.track.$canvas.height / this.channel.track.numberOfChannels - 1) * this.channelNum}px;
         `;
         channel.track.$trackElement.querySelector('.trackChannelList').appendChild(this.$canvas)
 
@@ -29,9 +29,6 @@ export class AudioWave{
 
         this.$canvas.width = this.offsetWidth// * this.dpr;
         this.$canvas.height = (this.offsetHeight + this.padding * 2)// * this.dpr;
-
-        const WIDTH = this.$canvas.width;
-        const HEIGHT = this.$canvas.height;
 
         //this.canvasCtx.scale(this.dpr, this.dpr);
         this.canvasCtx.translate(0, this.offsetHeight / 2 + this.padding); // Set Y = 0 to be in the middle of the canvas
@@ -55,7 +52,6 @@ export class AudioWave{
         return filteredData;
     }
     normalizeData = filteredData => {
-        //console.log(Math.max(...filteredData))
         const multiplier = Math.pow(Math.max(...filteredData), -1);
         return filteredData.map(n => n * multiplier);
     }
@@ -78,7 +74,9 @@ export class AudioWave{
         const channelWidth = normalizedData.length / this.channel.track.app.sampleDensity
         const channelHeight = this.channel.track.offsetHeight / this.channel.track.numberOfChannels - 2
 
+        console.log('setTrackBackgroundImage')
         this.channel.track.setTrackBackgroundImage(channelWidth + 4, this.channel.track.offsetHeight);
+        console.log('channel.init')
         this.channel.init(channelWidth, channelHeight)
         this.init(channelWidth, channelHeight)
       

@@ -20,8 +20,8 @@ export class RecordAudio{
     }
 
     switchRecording() {
-        if(this.lock) return;
-        this.lock = true;
+        // if(this.lock) return;
+        // this.lock = true;
         if(this.$recordAudio.classList.contains('recording')) {
             // if(!this.audioRecorder) {
             //     return;
@@ -38,7 +38,7 @@ export class RecordAudio{
             this.$recordAudio.classList.add('recording')
             this.initAudio.call(this);
         }
-        this.lock = false;
+        // this.lock = false;
     }
 
     gotStream(stream) {

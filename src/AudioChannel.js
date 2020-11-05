@@ -13,13 +13,13 @@ export class AudioChannel{
             z-index: 2;
             position: absolute;
             left: 2px;
-            top: ${2 + (track.$canvas.height / track.numberOfChannels - 2 + 1) * channelNum}px;
+            top: ${2 + (track.$canvas.height / track.numberOfChannels - 1) * channelNum}px;
         `;
         $trackElement.querySelector('.trackChannelList').appendChild(this.$canvas)
 
         this.canvasCtx = this.$canvas.getContext('2d');
 
-        this.init(track.offsetWidth - 4, track.offsetHeight / track.numberOfChannels - 2)
+        this.init(track.offsetWidth - 4, track.offsetHeight / track.numberOfChannels - 1)
 
         this.createWave(this, this.track.audioSource.buffer.getChannelData(this.channelNum), this.channelNum);
     }
@@ -37,10 +37,11 @@ export class AudioChannel{
 
         const WIDTH = this.$canvas.width;
         const HEIGHT = this.$canvas.height;
+        console.log(WIDTH)
 
-        this.canvasCtx.clearRect(0,0,WIDTH,HEIGHT);
+        this.canvasCtx.clearRect(0, 0, this.$canvas.width, this.$canvas.height);
         this.canvasCtx.fillStyle = 'rgb(200, 200, 200)'; // draw wave with canvas
-        this.canvasCtx.fillRect(0,0,WIDTH,HEIGHT);
+        this.canvasCtx.fillRect(0, 0, this.$canvas.width, this.$canvas.height);
 
         //this.canvasCtx.scale(this.dpr, this.dpr);
         this.canvasCtx.translate(0, this.offsetHeight / 2 + this.padding); // Set Y = 0 to be in the middle of the canvas
@@ -55,7 +56,7 @@ export class AudioChannel{
         this.audioWaves.push(audioWave)
     }
 
-    drawWave = (channel, audioData, channelNum) => {
+    draw = (channel, audioData, channelNum) => {
         //if(this.audioWaves.length === 0) return;
         for(let i = 0; i < this.audioWaves.length; i++){
             let audioWave = this.audioWaves[i]

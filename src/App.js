@@ -84,6 +84,7 @@ export class App {
             app: this,
             id: this.trackCreationCount
         })
+        // this.audioTracks[track.trackID] = track;
         this.audioTracks.push(track);
         this.trackCreationCount += 1;
     }

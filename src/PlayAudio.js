@@ -8,4 +8,14 @@ export class PlayAudio{
         $pauseAudio.addEventListener('click', pauseAudio);
         $stopAudio.addEventListener('click', stopAudio);
     }
+    
+    drawPlaybackBar = x => {
+        this.canvasCtx.strokeStyle = 'rgb(0, 0, 0)';
+        this.canvasCtx.beginPath();
+        this.canvasCtx.moveTo(x, -this.$canvas.height)
+        this.canvasCtx.lineTo(x, this.$canvas.height)
+        this.canvasCtx.stroke();
+        
+        requestAnimationFrame(() => this.drawPlaybackBar(x))
+    }
 }
