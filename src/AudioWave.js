@@ -70,7 +70,7 @@ export class AudioWave{
         ctx.lineTo(x + width, 0);
         ctx.stroke();
     };
-    draw = (channel, audioData, channelNum) => {
+    draw = (channel, audioData, channelNum) => {// 생성하기 위함 
         this.audioData = audioData //this.channel.track.audioSource.buffer.getChannelData(this.channelNum)
         let filteredData = this.filterData();
         let normalizedData = this.normalizeData(filteredData);

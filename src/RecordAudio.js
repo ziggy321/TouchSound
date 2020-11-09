@@ -1,143 +1,143 @@
-import recorder from 'lib/recorder.js';
-
-export class RecordAudio{
-    constructor({$trackElement}){
-        const $recordAudio = document.querySelector('.recordAudio')
-        $recordAudio.style = 'display: block;'
-        $recordAudio.addEventListener('click', switchRecording)
-
-        this.audioContext = new AudioContext();
-        this.audioInput= null 
-        this.realAudioInput =null
-        this.inputPoint= null
-        this.audioRecorder= null
-        this.analyserContext= null
-        this.recIndex = 0
-
-        this.isRecording = false;   
-        this.micStream;
-    }
-
-    gotBuffers( buffers ) {
-        // var canvas = document.getElementById( "wavedisplay" );
-        // drawBuffer( canvas.width, canvas.height, canvas.getContext('2d'), buffers[0] );
-
-        // the ONLY time gotBuffers is called is right after a new recording is completed - 
-        // so here's where we should set up the download.
-        this.audioRecorder.exportWAV( doneEncoding );
-    }
-
-    doneEncoding(blob) {
-        this.Recorder.setupDownload(blob, "myRecord" + ((recIndex<10)?"0":"")+recIndex+".wav");
-        this.recIndex++;
-    }
-
-    switchRecording() {
-        if(isRecording) {
-            console.log('stop recording')
-            //stop recording
-            this.audioRecorder.stop();
-            this.isRecording = false;
-            this.audioRecorder.getBuffers(this.gotBuffers);
-            exitAudio();
-        } else {
-            console.log('start recording')
-            //start recording
-
-            this.initAudio();
-        }
-    }
-
-    gotStream(stream) {
-        this.inputPoint = this.audioContext.createGain();
-
-        this.realAudioInput = this.audioContext.createMediaStreamSource(stream);
-        this.micStream = stream;
-
-        this.audioInput=this.realAudioInput;
-        this.audioInput.connect(inputPoint);
+export class RecordAudio {
+    constructor({ }){
+        this.$recordButton = document.querySelector('.recordAudio');
+        
+        console.log(this.saveButton);
+        this.savedAudioMessagesContainer = document.querySelector('#saved-audio-messages');
+   
+        this.recorder;
+        this.audio;
+        this.click = true;
     
-        analyserNode = this.audioContext.createAnalyser();
-        analyserNode.fftSize =2048;
-        this.inputPoint.connect(analyserNode);
-
-        zeroGain= this.audioContext.createGain();
-        //zeroGain.gain.value= 0.0;
-        this.inputPoint.connect(zeroGain);
-        zeroGain.connect( audioContext.destination);
-        //updateAnalysers();
-
-        console.log('get stream and init recorder')
-        this.audioRecorder = new Recorder(inputPoint);
-
-        return true;
+        this.$recordButton.addEventListener('click',async x => {
+            this.overClick();
+            await this.switchRecording(x);  
+        });
+        
+        // this.playButton.addEventListener('click', () => {
+        //     this.audio.play();
+        // });
+   
+        // this.saveButton.addEventListener('click', () => {
+        //    const reader = new FileReader();
+        //    this.reader.readAsDataURL(this.audio.audioBlob);
+        //    this.reader.onload = () => {
+        //     const base64AudioMessage = this.reader.result.split(',')[1];
+   
+        //    fetch('/messages', {
+        //         method: 'POST',
+        //         headers: { 'Content-Type': 'application/json' },
+        //         body: JSON.stringify({ message: base64AudioMessage })
+        //    }).then(res => {
+        //     if (res.status === 201) {
+        //        return populateAudioMessages();
+        //     }
+        //    console.log('Invalid status saving audio message: ' + res.status);
+        //    });
+        //   };
+        // });
+   
     }
-
-    initAudio() {
-        if (!navigator.getUserMedia)
-            navigator.getUserMedia = navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
-
-        navigator.mediaDevices.getUserMedia(
-            {
-            "audio": {
-                "mandatory": {
-                    "googEchoCancellation": "false",
-                    "googAutoGainControl": "false",
-                    "googNoiseSuppression": "false",
-                    "googHighpassFilter": "false"
-                },
-                "optional": []
-            },
-            })
-            .then(stream => this.gotStream(stream))
-            .then(() => {
-                this.isRecording = true;
-                console.log(audioRecorder)
-                this.audioRecorder.clear();
-                this.audioRecorder.record();
-            })
-            .catch(e => {
-                alert('Error getting audio');
-                console.log(e);
-            })
+    
+    overClick = () => {
+        if (this.click) {
+            console.log("클릭됨");
+            this.click=!this.click;
+        setTimeout(function(){
+            this.click= true;
+        },2000)
+    } else {
+        console.log("중복됨");
+      }
     }
+    
+    start = () => {
+        this.audioChunks = [];
+        this.mediaRecorder.start();
+    };
 
-    exitAudio = () => {
-        console.log(micStream)
-        this.micStream.getTracks().forEach(function(track) {
-            track.stop();
+        stop = () => {
+         return new Promise(resolve => {
+                this.mediaRecorder.addEventListener('stop', () => {
+                    const audioBlob = new Blob(this.audioChunks);
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    const audio = new Audio(audioUrl);
+                    const play = () => audio.play();
+                    const chunks= this.audioChunks;
+                    resolve({ chunks, audioBlob, audioUrl, play });
+                });
+                
+                this.mediaRecorder.stop();
+            });
+        }    
+    recordAudio = () => {
+
+        return new Promise(async resolve => {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            this.mediaRecorder = new MediaRecorder(stream);
+            let audioChunks = [];
+                this.mediaRecorder.addEventListener('dataavailable', event => {
+                    this.audioChunks.push(event.data);
+            });
+        const start =this.start;
+        const stop =this.stop;
+        resolve({ start, stop });
         });
     }
+    
+    sleep = time => new Promise(resolve => setTimeout(resolve, time));
+    
+    switchRecording =async x => {
+        this.audio;
+        this.recorder;
+        if(this.$recordButton.classList.contains('recording')) {
+            // if(!this.audioRecorder) {
+            //     return;
+            // }
+            
+            this.audio = await this.recorder.stop();
+            console.log('stop recording');
+            //stop recording
+            this.$recordButton.classList.remove('recording');
+            // this.audioRecorder.stop();
+            // this.audioRecorder.getBuffers(this.gotBuffers.bind(this));
+            // this.exitAudio.call(this);
+        } else {
+            if (!this.recorder) {
+                this.recorder = await this.recordAudio();
+            }
+            
+            this.recorder.start();
+            console.log('start recording');
+            //start recording
+            this.$recordButton.classList.add('recording');
+            // this.initAudio.call(this);
+        }
+        
+    }   
+    
+    populateAudioMessages = () => {
+        return fetch('/messages').then(res => {
+        if (res.status === 200) {
+        return res.json().then(json => {
+        json.messageFilenames.forEach(filename => {
+            let audioElement = document.querySelector(`[data-audio-filename="${filename}"]`);
+        if (!audioElement) {
+          audioElement = document.createElement('audio');
+          audioElement.src = `/messages/${filename}`;
+          audioElement.setAttribute('data-audio-filename', filename);
+          audioElement.setAttribute('controls', true);
+          savedAudioMessagesContainer.appendChild(audioElement);
+        }
+            });
+        });
+        }
+    console.log('Invalid status getting messages: ' + res.status);
+        });
+    };
 
-// function convertToMono( input ) {
-//     var splitter = audioContext.createChannelSplitter(2);
-//     var merger = audioContext.createChannelMerger(2);
-
-//     input.connect( splitter );
-//     splitter.connect( merger, 0, 0 );
-//     splitter.connect( merger, 0, 1 );
-//     return merger;
-// }
-// function cancelAnalyserUpdates() {
-//     window.cancelAnimationFrame( rafID );
-//     rafID = null;
-// }
-
-// }
 
 
-// function switchMono() {
-//     if (audioInput != realAudioInput) {
-//         audioInput.disconnect();
-//         realAudioInput.disconnect();
-//         audioInput =realAudioInput;
-//     } else {
-//         realAudioInput.disconnect();
-//         audioInput = convertToMono(realAudioUnput);
-//     }
-
-//     audioInput.connect(inputPoint)
-
-// }
-
+    // populateAudioMessages = () => {
+    // };
 }

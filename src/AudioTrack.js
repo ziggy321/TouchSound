@@ -5,9 +5,9 @@ import { AudioChannel } from "./AudioChannel.js";
 export class AudioTrack{
     trackID = 0;
 
-    audioCurrent = null;
-    channels = [];
-    numberOfChannels = 1;
+    audioCurrent = null;//현재까지 편집한 오디오 데이터가 담긴 노드
+    channels = [];//audiochannel 생성자로 생성한 객체들의 배열
+    numberOfChannels = 1;//음원 로드/노ㄱ음에 따라 채널 수가 조정됨
 
     pasteTarget = false;
 
@@ -135,14 +135,14 @@ export class AudioTrack{
         const WIDTH = this.$canvas.width;
         const HEIGHT = this.$canvas.height;
 
-        this.canvasCtx.clearRect(0,0,WIDTH,HEIGHT);
-        this.canvasCtx.fillStyle = 'rgb(100, 100, 100)'; // draw wave with canvas
-        this.canvasCtx.fillRect(0,0,WIDTH,HEIGHT);
+        this.canvasCtx.clearRect(0,0,WIDTH,HEIGHT);// (x,y,너비, 높이) 하얀색 초기화
+        this.canvasCtx.fillStyle = 'rgb(100, 100, 100)'; // draw wave with canvas. 색깔 정하기  r,g,b, 100보다 클수록 어두움
+        this.canvasCtx.fillRect(0,0,WIDTH,HEIGHT);//직사각형을 이 범위로 채운다.
 
         //this.canvasCtx.scale(this.dpr, this.dpr);
-        this.canvasCtx.translate(0, this.offsetHeight / 2 + this.padding); // Set Y = 0 to be in the middle of the canvas
+        this.canvasCtx.translate(0, this.offsetHeight / 2 + this.padding); // Set Y = 0 to be in the middle of the canvas 원점을 바꾼다 x, 
     }
-    setAudioSource = audioSource => {
+    setAudioSource = audioSource => {//채널 변수와 멤버 수를 초기화
         this.audioSource = audioSource
         this.numberOfChannels = audioSource.buffer.numberOfChannels
     }
@@ -163,26 +163,22 @@ export class AudioTrack{
         //     if(startAt < this.audioSource.loopStart || startAt > this.audioSource.loopEnd){
         //         startAt = this.audioSource.loopStart
         //     }
-        // }
+        // }루프 돌리기 위함, 아직 미 구현
         
         this.audioCurrentGetStream()
         if (this.audioContext.state === 'suspended') {
             this.audioContext.resume();
         }
         this.audioSource.start(startAt, 0, this.audioSource.buffer.duration);
-        this.app.startTime = this.audioContext.currentTime; 
-        this.app.stopped = false;
+        
     }
     pause = () => {
         this.audioSource.stop(0);
-        this.app.currentTime = this.audioContext.currentTime - this.app.startTime
-        this.app.stopped = true;
+      
     }
     stop = () => {
         this.audioSource.stop(0);
-        this.app.startTime = 0;
-        this.app.currentTime = 0;
-        this.app.stopped = true;
+        
     }
     getCurrentTime = () => {
         return (stopped) ? 0 : context.currentTime - startTime;
@@ -249,9 +245,8 @@ export class AudioTrack{
             this.selectedX2 = 0;
             return;
         }
-        this.mouseDownLeft = this.$canvas.getBoundingClientRect().left;
-        this.mouseDownTop = this.$canvas.getBoundingClientRect().top;
-        this.selectedX1 = window.event.clientX - this.mouseDownLeft;
+        
+        this.selectedX1 = window.event.clientX - this.$canvas.getBoundingClientRect().left;
     }
     mouseUp = () => {
         if(this.isDarkened) {
@@ -264,7 +259,7 @@ export class AudioTrack{
 
         this.darkenSelection(this.selectedX1, this.selectedX2)
     }
-    darkenSelection = (x1, x2) => {
+    darkenSelection = (x1, x2) => {//선택한 부분 어둡게 
         let left = (x1 < x2) ? x1 : x2
         let width = (x1 < x2) ? x2 - x1 : x1 - x2
 

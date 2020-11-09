@@ -19,7 +19,7 @@ export class AudioChannel{
 
         this.canvasCtx = this.$canvas.getContext('2d');
 
-        this.init(track.offsetWidth - 4, track.offsetHeight / track.numberOfChannels - 2)
+        this.init(track.offsetWidth - 4, track.offsetHeight / track.numberOfChannels - 2)//양 사이드 너비 잘린 부분
 
         this.createWave(this, this.track.audioSource.buffer.getChannelData(this.channelNum), this.channelNum);
     }
@@ -55,7 +55,7 @@ export class AudioChannel{
         this.audioWaves.push(audioWave)
     }
 
-    drawWave = (channel, audioData, channelNum) => {
+    draw = (channel, audioData, channelNum) => {//수정하기 위함 
         //if(this.audioWaves.length === 0) return;
         for(let i = 0; i < this.audioWaves.length; i++){
             let audioWave = this.audioWaves[i]
