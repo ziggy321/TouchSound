@@ -5,23 +5,34 @@ import { AudioChannel } from "./AudioChannel.js";
 export class AudioTrack{
     trackID = 0;
 
+    audioNodes = {};
     audioCurrent = null; // 현재까지 편집한 오디오 데이터가 담긴 노드
-    channels = []; // AudioChannel 생성자로 생성한 객체들의 배열
+    channels = []; // AudioChannel의 배열
     numberOfChannels = 0; // 음원 로드/녹음에 따라 채널 수가 조정됨
 
+    isRendered = false;
+
+    isDarkened = false; // 선택된 영역(darkened)이 있는지
+    selectedX1 = 0; // 드래그할 때 마우스를 누른 캔버스 좌표
+    selectedX2 = 0; // 드래그할 때 마우스를 뗀 캔버스 좌표
+
+    volume = 1;
     isMuted = false;
-    MutedVolume = 0;
+    mutedVolume = 0;
+    rateLevel = 1;
 
     constructor({app, id}){
-        console.log('new track')
         this.app = app;
         this.trackID = id;
+        this.waveColor = "#" + Math.round(Math.random() * 0xffffff).toString(16);
 
+        // DOM Components
         const $trackList = document.querySelector('.trackList')
         this.$trackElement = document.createElement('div')
         this.$trackElement.className = 'trackElement'
         this.$trackElement.innerHTML = `
             <div class='trackInterface'>
+                <span style='display: none'>${id}</span>
                 <button class="loadAudio">
                     <img src="img/loadButton.JPG" alt="" class="buttonInTrack">
                 </button>
@@ -31,75 +42,49 @@ export class AudioTrack{
                 <button class="muteAudio">
                     <img src="img/muteButton.JPG" alt="" class="buttonInTrack">
                 </button>
+                <button class="closeAudio">
+                    <img src="img/closeButton.JPG" alt="" class="buttonInTrack">
+                </button>
             </div>
             <div class='trackChannelList'></div>
             `;
         $trackList.appendChild(this.$trackElement)
-
-        this.initAudioContext();
         
-        // setup the background canvas of track
+        // draw track canvas
         this.$canvas = document.createElement('canvas');
         this.$canvas.className = 'trackBackground';
         this.$trackElement.querySelector('.trackChannelList').appendChild(this.$canvas)
         this.canvasCtx = this.$canvas.getContext('2d');
-        this.setTrackBackgroundImage(1000, 151)
+        this.offsetWidth = 0;
+        this.dpr = window.devicePixelRatio || 1;
+        this.padding = app.wavePadding;
+        this.draw(this.app.defaultWidth, this.app.defaultHeight)
 
         // event
+        this.$trackChannelList = this.$trackElement.querySelector('.trackChannelList')
         this.$copyButton = document.querySelector('.copyAudio')
         this.$cutButton = document.querySelector('.cutAudio')
         this.$pasteButton = document.querySelector('.pasteAudio')
+        this.$deleteButton = document.querySelector('.deleteAudio')
         this.$trackElement.addEventListener('click', this.selectAudio.bind(this))
-        this.$trackElement.querySelector('.trackChannelList').addEventListener('mousedown', this.mouseDown.bind(this))
-        this.$trackElement.querySelector('.trackChannelList').addEventListener('mouseup', this.mouseUp.bind(this))
+        this.$trackChannelList.addEventListener('mousedown', this.mouseDown.bind(this))
+        this.$trackChannelList.addEventListener('mouseup', this.mouseUp.bind(this))
         this.$copyButton.addEventListener('click', this.copyWave.bind(this))
         this.$cutButton.addEventListener('click', () => {
             this.copyWave.call(this)
             this.deleteWave.call(this)
         })
-        this.$pasteButton.addEventListener('click', this.pasteWave.bind(this, 0))
+        this.$pasteButton.addEventListener('click', this.pasteWave.bind(this, this.app.currentTime))
+        this.$deleteButton.addEventListener('click', this.deleteWave.bind(this, this.app.currentTime))
         this.$trackElement.querySelector('.muteAudio').addEventListener('click', this.mute);
-
-        // for event
-        this.isDarkened = false;
-        this.mouseDownLeft = 0;
-        this.selectedX1 = 0;
-        this.selectedX2 = 0;
+        
+        // initialize audio context
+        // this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        this.initAudio();
 
         this.loadAudio = new LoadAudio({
-            $trackElement: this.$trackElement,
-            fetchFile: () => {
-                console.log('load')
-                const $input = document.createElement("input");
-                $input.type = "file";
-                $input.accept = "audio/*";
-                $input.onchange = event => {
-                    const file = event.target.files[0];
-                    if(file.type.substring(0, 5) !== "audio"){
-                        alert("올바른 파일 형식이 아닙니다.");
-                        return;
-                    }
-                    file.arrayBuffer()
-                    .then(buffer => this.audioContext.decodeAudioData(buffer))
-                    .then(audioBuffer => {
-                        let audioBufferSourceNode = this.audioContext.createBufferSource();
-                        audioBufferSourceNode.buffer = audioBuffer;
-                        
-                        this.setAudioSource(audioBufferSourceNode)
-
-                        for(let i = 0; i < this.numberOfChannels; i++){
-                            let channel = new AudioChannel({
-                                track: this,
-                                $trackElement: this.$trackElement,
-                                channelNum: i
-                            })
-                            this.channels.push(channel)
-                        }
-                    })
-                    .catch(e => console.log(e));
-                };
-                $input.click();
-            }
+            track: this,
+            $trackElement: this.$trackElement
         });
 
         this.recordAudio = new RecordAudio({
@@ -108,59 +93,135 @@ export class AudioTrack{
     }
 
     // methods for canvas
-    setTrackBackgroundImage = (w, h) => {
-        // Set up the canvas
-        this.dpr = window.devicePixelRatio || 1;
-        this.padding = 20;
+    draw = (w, h = this.offsetHeight) => {
+        // draw track canvas
+        if(w > this.offsetWidth){
+            this.offsetWidth = w;
+            this.offsetHeight = h;
 
-        this.offsetWidth = w;
-        this.offsetHeight = h;
+            this.$canvas.width = this.offsetWidth// * this.dpr;
+            this.$canvas.height = (this.offsetHeight + this.padding * 2)// * this.dpr;
 
-        this.$canvas.width = this.offsetWidth// * this.dpr;
-        this.$canvas.height = (this.offsetHeight + this.padding * 2)// * this.dpr;
+            this.canvasCtx.clearRect(0, 0, this.$canvas.width, this.$canvas.height);
+            this.canvasCtx.fillStyle = 'rgb(100, 100, 100)';
+            this.canvasCtx.fillRect(0, 0, this.$canvas.width, this.$canvas.height);
+            
+            this.canvasCtx.translate(0, this.offsetHeight / 2 + this.padding); // Set Y = 0 to be in the middle of the canvas
+        }
 
-        this.canvasCtx.clearRect(0, 0, this.$canvas.width, this.$canvas.height);
-        this.canvasCtx.fillStyle = 'rgb(100, 100, 100)'; // draw wave with canvas
-        this.canvasCtx.fillRect(0, 0, this.$canvas.width, this.$canvas.height);
-
-        //this.canvasCtx.scale(this.dpr, this.dpr);
-        this.canvasCtx.translate(0, this.offsetHeight / 2 + this.padding); // Set Y = 0 to be in the middle of the canvas
-
-        if(this.app.selectedTrackID === this.trackID){
+        if(this.app.selectMode === 'track' && this.app.selectedTrackID === this.trackID){
             this.borderTrack();
         }
-    }
-    draw = () => {
+
+        // draw wave
         for(let i = 0; i < this.numberOfChannels; i++){
             let channel = this.channels[i];
-            channel.draw(channel, this.audioSource.buffer.getChannelData(i), i);
+            
+            channel.draw(this.offsetWidth - this.app.trackPadding * 2, 
+                (this.offsetHeight - this.app.trackPadding * 2 - this.numberOfChannels - 1) / this.numberOfChannels)
         }
     }
 
     // methods for audio
-    initAudioContext = () => {
+    initAudio = () => {
+        // setup the audioContext
         this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
         this.audioSource = this.audioContext.createBufferSource();
-        this.audioAnalyser = this.audioContext.createAnalyser();
-
         this.gain = this.audioContext.createGain();
-        this.audioConvolver = this.audioContext.createConvolver()
-        this.masterGain = this.audioContext.createGain();
-        this.masterCompression = this.audioContext.createDynamicsCompressor();
+        this.volume = this.gain.gain.value;
+        // this.audioConvolver = this.audioContext.createConvolver()
+        // this.masterGain = this.audioContext.createGain();
+        // this.masterCompression = this.audioContext.createDynamicsCompressor();
+    }
+    audioCurrentGetStream = () => {
+        this.audioSource.connect(this.gain);
+        this.gain.connect(this.audioContext.destination);
+        // this.gain.connect(this.audioConvolver);
+        // this.audioConvolver.connect(this.masterGain);
+        // this.masterGain.connect(this.masterCompression);
+    }
+    initOfflineAudio = (numberOfChannels, length, sampleRate) => {
+        this.offlineContext = new OfflineAudioContext(numberOfChannels, length, sampleRate);
+        this.audioSource = this.offlineContext.createBufferSource();
+        this.gain = this.offlineContext.createGain();
+        this.volume = this.gain.gain.value;
+        this.audioConvolver = this.offlineContext.createConvolver()
+        this.masterGain = this.offlineContext.createGain();
+        this.masterCompression = this.offlineContext.createDynamicsCompressor();
+    }
+    loadBuffer = audioBuffer => {
+        // this.initOfflineAudio(audioBuffer.numberOfChannels, audioBuffer.length, audioBuffer.sampleRate)
+        // let audioBufferSourceNode = this.offlineContext.createBufferSource();
+        let audioBufferSourceNode = this.audioContext.createBufferSource();
+        audioBufferSourceNode.buffer = audioBuffer;
+        this.setAudioSource(audioBufferSourceNode)
+
+        for(let i = 0; i < this.numberOfChannels; i++){
+            let channel = new AudioChannel({
+                track: this,
+                $trackElement: this.$trackElement,
+                channelNum: i
+            })
+            this.channels.push(channel)
+        }
+
+        // this.renderAudio();
     }
     setAudioSource = audioSource => {
         this.audioSource = audioSource
         this.numberOfChannels = audioSource.buffer.numberOfChannels
+        this.rateLevel = this.audioSource.playbackRate.value;
+        
+        if(this.app.selectedTrackID === this.trackID){
+            this.showTrackAttributes();
+        }
     }
-    audioCurrentGetStream = () => {
-        this.audioSource.connect(this.audioAnalyser);
-        this.audioAnalyser.connect(this.gain);
-        this.gain.connect(this.audioConvolver);
-        this.audioConvolver.connect(this.masterGain);
-        this.masterGain.connect(this.masterCompression);
+    renderAudio = () => {
+        if(this.isRendered){
+            let audioReplace = this.offlineContext.createBufferSource();
+            audioReplace.buffer = this.audioSource.buffer;
+            this.audioSource = audioReplace
+        }
+        this.isRendered = true;
 
-        this.audioCurrent = this.gain;
-        this.audioCurrent.connect(this.audioContext.destination);
+        this.audioSource.connect(this.gain);
+        this.gain.connect(this.offlineContext.destination);
+        
+        console.log(this.offlineContext.state)
+        if(this.offlineContext.state === 'closed'){
+            this.offlineContext.resume()
+        }
+
+        this.audioSource.start();
+        this.offlineContext.startRendering().then(renderedBuffer => {
+            this.audioCurrent = this.audioContext.createBufferSource();
+            this.audioCurrent.buffer = renderedBuffer;
+            this.audioCurrent.connect(this.audioContext.destination);
+
+            for(let i = 0; i < this.numberOfChannels; i++){
+                let channel = new AudioChannel({
+                    track: this,
+                    $trackElement: this.$trackElement,
+                    channelNum: i
+                })
+                this.channels.push(channel)
+            }
+
+            const width = Math.floor(this.audioCurrent.buffer.duration)
+                * this.app.samplePerDuration / this.app.sampleDensity + this.app.trackPadding * 2 + 1;
+            this.draw(width)
+        }).catch(function(err) {
+            console.log('Rendering failed: ' + err);
+            // Note: The promise should reject when startRendering is called a second time on an OfflineAudioContext
+        });
+        
+    }
+
+    showTrackAttributes = () => {
+        let $volume = document.querySelector(".volume")
+        $volume.value =  Math.round(this.gain.gain.value * 10) / 10
+        let $speed = document.querySelector(".speed")
+        $speed.value = Math.round(this.audioSource.playbackRate.value * 10) / 10
     }
     play = startAt => {
         // if(this.audioSource.loop){
@@ -168,45 +229,36 @@ export class AudioTrack{
         //         startAt = this.audioSource.loopStart
         //     }
         // }
-        
-        this.audioCurrentGetStream()
+        let usedSource = this.audioSource;
+        this.audioSource = this.audioContext.createBufferSource();
+        this.audioSource.buffer = usedSource.buffer
+
         if (this.audioContext.state === 'suspended') {
             this.audioContext.resume();
         }
+        this.audioCurrentGetStream();
         this.audioSource.start(startAt, 0, this.audioSource.buffer.duration);
-    }
-    pause = () => {
-        this.audioSource.stop(0);
     }
     stop = () => {
         this.audioSource.stop(0);
     }
-    getCurrentTime = () => {
-        return (stopped) ? 0 : context.currentTime - startTime;
-    }
-    mute = () => {
-        if(this.isMuted) {
-            this.gain.gain.value = this.MutedVolume;
-            return;
-        }
-        this.MutedVolume = this.gain.gain.value;
-        this.gain.gain.value = 0;
-    }
-    setCurrentVolume = volume => {
-        this.masterGain.gain.setValueAtTime(volume, this.audioContext.currentTime);
-    }
-    setEntireVolume = volume => {
-        this.masterGain.gain.value = volume;
-    }
-    setRate = rate => {
-        this.audioSource.playbackRate.setValueAtTime(rate, this.audioContext.currentTime)
-    }
-    setPitch = newSemitones => {
-        // const curSemitones = 12 * Math.log2(this.audioSource.playbackRate);
-        // this.audioSource.playbackRate = Math.pow(2, newSemitones/12);
-    }
 
     // methods for editing
+    selectAudio = () => {
+        if(this.app.selectMode !== 'track') return;
+        if(this.app.selectedTrackID === this.trackID) return;
+
+        for(var i in this.app.audioTracks){
+            let track = this.app.audioTracks[i]
+            if(this.app.selectedTrackID === track.trackID){
+                track.unborderTrack();
+                break;
+            }
+        }
+        this.app.selectedTrackID = this.trackID
+        this.borderTrack();
+        this.showTrackAttributes();
+    }
     mouseDown = () => {
         if(this.app.selectedTrackID !== this.trackID) {
             return;
@@ -218,7 +270,8 @@ export class AudioTrack{
             return;
         }
         
-        this.selectedX1 = window.event.clientX - this.$canvas.getBoundingClientRect().left;
+        if(this.app.selectMode !== 'track') return;
+        this.selectedX1 = window.event.clientX - this.$canvas.getBoundingClientRect().left
     }
     mouseUp = () => {
         if(this.app.selectedTrackID !== this.trackID) {
@@ -228,24 +281,12 @@ export class AudioTrack{
             this.isDarkened = false;
             return;
         }
-        this.isDarkened = true;
         
-        this.selectedX2 = window.event.clientX - this.$canvas.getBoundingClientRect().left;
+        if(this.app.selectMode !== 'track') return;
+        this.isDarkened = true;
+        this.selectedX2 = window.event.clientX - this.$canvas.getBoundingClientRect().left
 
         this.darkenSelection(this.selectedX1, this.selectedX2)
-    }
-    selectAudio = () => {
-        if(this.app.selectedTrackID === this.trackID) return;
-
-        for(let i = 0; i < this.app.audioTracks.length; i++){
-            let track = this.app.audioTracks[i]
-            if(this.app.selectedTrackID === track.trackID){
-                track.unborderTrack();
-                break;
-            }
-        }
-        this.app.selectedTrackID = this.trackID
-        this.borderTrack();
     }
     borderTrack = () => {
         this.canvasCtx.fillStyle = 'rgb(255, 0, 0)'; // draw wave with canvas
@@ -271,10 +312,9 @@ export class AudioTrack{
             ctx.fillStyle = 'rgb(180, 180, 180)'; // draw wave with canvas
             ctx.fillRect(left,-$canvas.height/2,width,$canvas.height);
         }
-
-        console.log('darken')
     }
     cancelDarkenSelection = (x1, x2) => {
+        if(x1 === x2) return;
         let left = (x1 < x2) ? x1 : x2
         let width = (x1 < x2) ? x2 - x1 : x1 - x2
 
@@ -294,16 +334,14 @@ export class AudioTrack{
         const x1 = (this.selectedX1 < this.selectedX2) ? this.selectedX1 : this.selectedX2
         const x2 = (this.selectedX1 < this.selectedX2) ? this.selectedX2 : this.selectedX1
 
-        const dataLength = this.audioSource.buffer.length;
-        const samples = this.offsetWidth - 4;
-        const blockSize = Math.floor(dataLength / samples);
+        const blockSize = this.app.blockSize
 
         this.app.copiedBuffer = this.audioContext.createBuffer(
             this.audioSource.buffer.numberOfChannels, (x2 - x1) * blockSize, this.audioSource.buffer.sampleRate);
 
         for(let i = 0; i < this.numberOfChannels; i++){
             let srcData = this.audioSource.buffer.getChannelData(i);
-            let copiedAudioData = new Float32Array((x2 - x1) * blockSize)// / this.dpr);
+            let copiedAudioData = new Float32Array((x2 - x1) * blockSize)
             for(let j = (x1 * blockSize); j < (x2 * blockSize); j++){
                 copiedAudioData[j - (x1 * blockSize)] = srcData[j];
             }       
@@ -319,9 +357,7 @@ export class AudioTrack{
         const x1 = (this.selectedX1 < this.selectedX2) ? this.selectedX1 : this.selectedX2
         const x2 = (this.selectedX1 < this.selectedX2) ? this.selectedX2 : this.selectedX1
 
-        const dataLength = this.audioSource.buffer.length;
-        const samples = this.offsetWidth - 4;
-        const blockSize = Math.floor(dataLength / samples);
+        const blockSize = this.app.blockSize
 
         for(let i = 0; i < this.numberOfChannels; i++){
             let srcData = this.audioSource.buffer.getChannelData(i);
@@ -330,23 +366,32 @@ export class AudioTrack{
             }
             this.audioSource.buffer.copyToChannel(srcData, i)
         }
-        this.draw();
+        
+        this.draw(this.offsetWidth, this.offsetHeight);
         this.darkenSelection(this.selectedX1, this.selectedX2)
     }
     pasteWave = x => {
         if(this.app.selectedTrackID !== this.trackID || !this.app.copiedBuffer) {
             return;
         }
-        const x1 = (this.selectedX1 < this.selectedX2) ? this.selectedX1 : this.selectedX2
-        x = x1;
 
-        let destData, pasteData, width;
+        if(this.app.copiedBuffer.numberOfChannels !== this.numberOfChannels){
+            if(this.numberOfChannels === 0){
+                this.loadBuffer(this.app.copiedBuffer)
+            }
+            else{
+                alert("채널 수가 같은 트랙에만 붙여넣기 가능합니다.")
+                return;
+            }
+        }
+
+        let destData, pasteData;
+        const blockSize = this.app.blockSize
         for(let i = 0; i < this.numberOfChannels; i++){
             destData = this.audioSource.buffer.getChannelData(i);
-            const samples = this.channels[i].offsetWidth;
-            const blockSize = Math.floor(destData.length / samples);
+
             pasteData = this.app.copiedBuffer.getChannelData(i);
-            const start = (x * blockSize)// / this.dpr
+            const start = (x * blockSize)
 
             for(let j = 0; j < pasteData.length; j++){
                 destData[j + start] = pasteData[j];
@@ -355,12 +400,14 @@ export class AudioTrack{
             this.audioSource.buffer.copyToChannel(destData, i)
         }
 
-        this.draw();
-        // this.selectedX1 = x;
-        // this.selectedX2 = x + width;
-
-        if(this.selectedX1 !== this.selectedX2){
-            this.darkenSelection(this.selectedX1, this.selectedX2)
-        }
+        this.draw(this.offsetWidth, this.offsetHeight);
+        
+        const width = this.app.copiedBuffer.duration * this.app.canvasLengthPerDuration / this.app.sampleDensity
+        
+        this.cancelDarkenSelection(this.selectedX1, this.selectedX2)
+        this.selectedX1 = x;
+        this.selectedX2 = x + width;
+        this.isDarkened = true;
+        this.darkenSelection(this.selectedX1, this.selectedX2)
     }
 }

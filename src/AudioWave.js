@@ -1,4 +1,6 @@
 export class AudioWave{
+    waveMax = 0.3;
+
     constructor({channel, audioData, channelNum}){
         this.channel = channel;
         this.audioData = audioData;
@@ -13,51 +15,39 @@ export class AudioWave{
             top: ${2 + (this.channel.track.$canvas.height / this.channel.track.numberOfChannels - 1) * this.channelNum}px;
         `;
         channel.track.$trackElement.querySelector('.trackChannelList').appendChild(this.$canvas)
-
         this.canvasCtx = this.$canvas.getContext('2d');
-        
-        this.draw(channel, audioData, channelNum);
-    }
-
-    init = (w, h) => {
-        // Set up the canvas
+        this.offsetWidth = 0;
         this.dpr = window.devicePixelRatio || 1;
-        this.padding = 10;
-
-        this.offsetWidth = w;
-        this.offsetHeight = h;
-
-        this.$canvas.width = this.offsetWidth// * this.dpr;
-        this.$canvas.height = (this.offsetHeight + this.padding * 2)// * this.dpr;
-
-        //this.canvasCtx.scale(this.dpr, this.dpr);
-        this.canvasCtx.translate(0, this.offsetHeight / 2 + this.padding); // Set Y = 0 to be in the middle of the canvas
+        this.padding = channel.track.padding / 2;
     }
 
     filterData = () => {
-        const rawData = this.audioData //this.channel.track.audioSource.buffer.getChannelData(this.channelNum); // We only need to work with one channel of data
-        //const rawData = audioData;
-        const samples = Math.floor(this.channel.track.audioSource.buffer.duration) * this.channel.track.app.canvasLengthPerDuration
-        //Number of samples we want to have in our final data set
-        const blockSize = Math.floor(rawData.length / samples); // the number of samples in each subdivision
+        const rawData = this.audioData
+        const blockSize = this.channel.track.app.blockSize
+        const samples = Math.floor(rawData.length / blockSize);
+
         const filteredData = [];
         for (let i = 0; i < samples; i++) {
-            let blockStart = blockSize * i; // the location of the first sample in the block
+            let blockStart = blockSize * i;
             let sum = 0;
             for (let j = 0; j < blockSize; j++) {
-                sum = sum + Math.abs(rawData[blockStart + j]) // find the sum of all the samples in the block
+                sum = sum + Math.abs(rawData[blockStart + j])
             }
-            filteredData.push(sum / blockSize); // divide the sum by the block size to get the average
+            // sum *= this.channel.track.gain.gain.value;
+            filteredData.push(sum / blockSize);
         }
         return filteredData;
     }
     normalizeData = filteredData => {
-        const multiplier = Math.pow(Math.max(...filteredData), -1);
-        return filteredData.map(n => n * multiplier);
+        return filteredData.map(n => {
+            let ret = n / this.waveMax
+            ret = (ret > 1) ? 1 : (ret < -1) ? -1 : ret;
+            return ret
+        });
     }
     drawLineSegment = (ctx, x, y, width, isEven) => {
-        ctx.lineWidth = 1; // how thick the line is
-        ctx.strokeStyle = 'rgb(0, 200, 0)'; // what color our line is
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = this.channel.track.waveColor;
         ctx.beginPath();
         y = isEven ? y : -y;
         ctx.moveTo(x, 0);
@@ -66,34 +56,26 @@ export class AudioWave{
         ctx.lineTo(x + width, 0);
         ctx.stroke();
     };
-    draw = (channel, audioData, channelNum) => {
-        this.audioData = audioData //this.channel.track.audioSource.buffer.getChannelData(this.channelNum)
+    draw = audioData => {
+        this.audioData = audioData
         let filteredData = this.filterData();
         let normalizedData = this.normalizeData(filteredData);
 
-        const channelWidth = normalizedData.length / this.channel.track.app.sampleDensity
-        const channelHeight = this.channel.track.offsetHeight / this.channel.track.numberOfChannels - 2
-
-        console.log('setTrackBackgroundImage')
-        this.channel.track.setTrackBackgroundImage(channelWidth + 4, this.channel.track.offsetHeight);
-        console.log('channel.init')
-        this.channel.init(channelWidth, channelHeight)
-        this.init(channelWidth, channelHeight)
+        // Set up the canvas
+        this.offsetWidth = normalizedData.length / this.channel.track.app.sampleDensity;
+        this.offsetHeight = this.channel.track.offsetHeight / this.channel.track.numberOfChannels - 2;
+        this.$canvas.width = this.offsetWidth
+        this.$canvas.height = (this.offsetHeight + this.padding * 2)
+        
+        this.canvasCtx.translate(0, this.offsetHeight / 2 + this.padding);
       
         // draw the line segments
         const width = this.offsetWidth / normalizedData.length;
-        console.log(width)
         for (let i = 0; i < normalizedData.length; i++) {
             const x = width * i;
-            let height = normalizedData[i] * this.offsetHeight - this.padding;
-            if (height < 0) {
-                height = 0;
-            } else if (height > this.offsetHeight / 2) {
-                height = height > this.offsetHeight / 2;
-            }
+            let height = normalizedData[i] * (this.offsetHeight / 2)
             this.drawLineSegment(this.canvasCtx, x, height, width, (i + 1) % 2);
         }
-
         console.log('drawn')
     };
 

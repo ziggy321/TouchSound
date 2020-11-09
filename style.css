@@ -8,9 +8,10 @@
     outline: none;
     cursor: pointer;
 }
-
 .buttonInTrack{
     display: block;
+    margin-left: auto;
+    margin-right: auto;
     
     width: auto; height: auto;
     max-width: 50px;
@@ -20,6 +21,27 @@
     border: none;
     outline: none;
     cursor: pointer;
+}
+
+.adjustBox{
+    border: solid;
+}
+.adjustLabel{
+    display: block;
+    text-align: center;
+    font-size: 3px;
+    /* margin-left: 10px;
+    margin-right: 10px; */
+}
+.inputUnit{
+    display: block;
+    max-height: 20px;
+    /* margin-right: 10px;
+    margin-left: 10px; */
+}
+
+.valueAdjust{
+    max-width: 20px;
 }
 
 .trackList{
@@ -32,7 +54,9 @@
 }
 
 .trackInterface{
+    display: flex;
     position: relative;
+    flex-direction: column;
 }
 
 .trackChannelList{
