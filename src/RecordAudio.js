@@ -2,18 +2,27 @@ export class RecordAudio {
     constructor({ }){
         this.$recordButton = document.querySelector('.recordAudio');
         
-        console.log(this.saveButton);
         this.savedAudioMessagesContainer = document.querySelector('#saved-audio-messages');
    
         this.recorder;
         this.audio;
-        this.click = true;
-    
+        this.vm;
+        this.$recordButton.addEventListener('click',function (e) {
+            console.log("클릭")
+            const vm = this;
+            this.setAttribute("disabled","disabled");
+        
+            setTimeout(function () {
+                console.log("처리완료")
+                vm.removeAttribute("disabled")
+            },1000)
+        })
         this.$recordButton.addEventListener('click',async x => {
-            this.overClick();
             await this.switchRecording(x);  
         });
-        
+       
+
+
         // this.playButton.addEventListener('click', () => {
         //     this.audio.play();
         // });
@@ -39,17 +48,7 @@ export class RecordAudio {
    
     }
     
-    overClick = () => {
-        if (this.click) {
-            console.log("클릭됨");
-            this.click=!this.click;
-        setTimeout(function(){
-            this.click= true;
-        },2000)
-    } else {
-        console.log("중복됨");
-      }
-    }
+    
     
     start = () => {
         this.audioChunks = [];
@@ -88,13 +87,14 @@ export class RecordAudio {
     sleep = time => new Promise(resolve => setTimeout(resolve, time));
     
     switchRecording =async x => {
+        
         this.audio;
         this.recorder;
+
         if(this.$recordButton.classList.contains('recording')) {
             // if(!this.audioRecorder) {
             //     return;
             // }
-            
             this.audio = await this.recorder.stop();
             console.log('stop recording');
             //stop recording
@@ -106,7 +106,7 @@ export class RecordAudio {
             if (!this.recorder) {
                 this.recorder = await this.recordAudio();
             }
-            
+
             this.recorder.start();
             console.log('start recording');
             //start recording
