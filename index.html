@@ -36,12 +36,22 @@
                 <img src="img/stopButton.JPG" alt="" class="button">
             </button>
 
-            <button class="selectAudio">
-                <img src="img/selectButton.JPG" alt="" class="button">
-            </button>
-            <button class="moveAudio">
-                <img src="img/moveButton.JPG" alt="" class="button">
-            </button>
+            <div class='adjustBox'>
+                <label class='adjustLabel'>Zoom</label>
+                <div class='inputUnit'>
+                    <button class='zoomIn'>in</button>
+                    <input class='zoom valueAdjust' type="text" value="1" />
+                    <button class='zoomOut'>out</button>
+                </div>
+            </div>
+
+            <div class="adjustBox">
+                <label for="modeSelect" class='adjustLabel'>Edit Mode</label>
+                <select class='selectMode inputUnit' name="target">
+                    <option value="Track">Track</option>
+                    <option value="Channel">Channel</option>
+                </select>
+            </div>
             
             <button class="copyAudio">
                 <img src="img/copyButton.JPG" alt="" class="button">
@@ -52,15 +62,33 @@
             <button class="pasteAudio">
                 <img src="img/pasteButton.JPG" alt="" class="button">
             </button>
+            <button class="deleteAudio">
+                <img src="img/deleteButton.JPG" alt="" class="button">
+            </button>
+
+            <div class='adjustBox'>
+                <label class='adjustLabel'>Volume per track</label>
+                <div class='inputUnit'>
+                    <button class='volumeUp'>+</button>
+                    <input class='volume valueAdjust' type="text" value="1" />
+                    <button class='volumeDown'>-</button>
+                </div>
+            </div>
+
+            <div class='adjustBox'>
+                <label class='adjustLabel'>Speed</label>
+                <div class='inputUnit'>
+                    <button class='speedUp'>>>></button>
+                    <input class='speed valueAdjust' type="text" value="1" />
+                    <button class='speedDown'>></button>
+                </div>
+            </div>
         </div>
 
         <div class="trackList"></div>
 
         <button class="createTrack">
             <img src="img/createTrackButton.JPG" alt="" class="button">
-        </button>
-        <button class="deleteTrack">
-            <img src="img/deleteTrackButton.JPG" alt="" class="button">
         </button>
 
         <script src="main.js" type="module"></script>
