@@ -135,9 +135,4 @@ export class RecordAudio {
     console.log('Invalid status getting messages: ' + res.status);
         });
     };
-
-
-
-    // populateAudioMessages = () => {
-    // };
 }
