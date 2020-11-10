@@ -54,8 +54,8 @@ export class AudioChannel{
             this.copyWave.call(this)
             this.deleteWave.call(this)
         })
-        this.$pasteButton.addEventListener('click', this.pasteWave.bind(this, this.track.app.playbackTime))
-        this.$deleteButton.addEventListener('click', this.deleteWave.bind(this, this.track.app.playbackTime))
+        this.$pasteButton.addEventListener('click', this.pasteWave.bind(this))
+        this.$deleteButton.addEventListener('click', this.deleteWave.bind(this))
 
         this.audioWave = new AudioWave({
             channel: this, 
@@ -228,8 +228,7 @@ export class AudioChannel{
         this.draw(this.offsetWidth, this.offsetHeight);
         this.darkenSelection(this.selectedX1, this.selectedX2)
     }
-    pasteWave = x => {
-        console.log(this.track.app.selectMode)
+    pasteWave = () => {
         if(this.track.app.selectMode !== 'channel') return;
         if(this.track.app.selectedTrackID !== this.track.trackID || this.track.app.selectedChannelID !== this.channelNum) {
             return;
@@ -237,6 +236,7 @@ export class AudioChannel{
         if(!this.track.app.copiedChannel) {
             return;
         }
+        const x =  this.track.app.playbackTime
 
         let destData, pasteData;
         destData = this.track.audioSource.buffer.getChannelData(this.channelNum);
@@ -259,8 +259,6 @@ export class AudioChannel{
         this.selectedX1 = x;
         this.selectedX2 = x + width;
         this.isDarkened = true;
-        
-        console.log(x, x + width)
 
         this.darkenSelection(this.selectedX1, this.selectedX2)
     }

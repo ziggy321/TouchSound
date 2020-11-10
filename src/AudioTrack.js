@@ -74,8 +74,8 @@ export class AudioTrack{
             this.copyWave.call(this)
             this.deleteWave.call(this)
         })
-        this.$pasteButton.addEventListener('click', this.pasteWave.bind(this, this.app.playbackTime))
-        this.$deleteButton.addEventListener('click', this.deleteWave.bind(this, this.app.playbackTime))
+        this.$pasteButton.addEventListener('click', this.pasteWave.bind(this))
+        this.$deleteButton.addEventListener('click', this.deleteWave.bind(this))
         this.$trackElement.querySelector('.muteAudio').addEventListener('click', this.mute);
         
         // initialize audio context
@@ -387,7 +387,8 @@ export class AudioTrack{
         this.draw(this.offsetWidth, this.offsetHeight);
         this.darkenSelection(this.selectedX1, this.selectedX2)
     }
-    pasteWave = x => {
+    pasteWave = () => {
+        const x =  this.app.playbackTime
         if(this.app.selectMode === 'channel') return;
         if(this.app.selectedTrackID !== this.trackID || !this.app.copiedBuffer) {
             return;
