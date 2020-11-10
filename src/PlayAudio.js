@@ -18,8 +18,11 @@ export class PlayAudio{
         this.$canvas.height = this.app.defaultHeight + this.app.wavePadding * 2
         this.canvasCtx = this.$canvas.getContext('2d');
     }
-    
+
     drawPlaybackBar = x => {
+        if(x >= this.$canvas.width){
+            this.$canvas.width *= 2;
+        }
         this.$canvas.height = this.app.defaultHeight + this.app.wavePadding * 2
         this.canvasCtx.lineWidth = 1;
         this.canvasCtx.strokeStyle = 'rgb(0, 0, 0)';

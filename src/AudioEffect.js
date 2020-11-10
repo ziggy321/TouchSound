@@ -133,6 +133,7 @@ export class AudioEffect{
             let rate = Math.round(track.audioSource.playbackRate.value * 10) / 10 + this.speedChangeUnit;
             rate = Math.round(rate * 10) / 10;
             track.audioSource.playbackRate.value = rate
+            track.rate = rate
             this.$speed.value = rate
         // }
     }

@@ -19,7 +19,7 @@ export class AudioTrack{
     volume = 1;
     isMuted = false;
     mutedVolume = 0;
-    rateLevel = 1;
+    rate = 1;
 
     constructor({app, id}){
         this.app = app;
@@ -74,8 +74,8 @@ export class AudioTrack{
             this.copyWave.call(this)
             this.deleteWave.call(this)
         })
-        this.$pasteButton.addEventListener('click', this.pasteWave.bind(this, this.app.currentTime))
-        this.$deleteButton.addEventListener('click', this.deleteWave.bind(this, this.app.currentTime))
+        this.$pasteButton.addEventListener('click', this.pasteWave.bind(this, this.app.playbackTime))
+        this.$deleteButton.addEventListener('click', this.deleteWave.bind(this, this.app.playbackTime))
         this.$trackElement.querySelector('.muteAudio').addEventListener('click', this.mute);
         
         // initialize audio context
@@ -232,12 +232,13 @@ export class AudioTrack{
         let usedSource = this.audioSource;
         this.audioSource = this.audioContext.createBufferSource();
         this.audioSource.buffer = usedSource.buffer
+        this.audioSource.playbackRate.value = usedSource.playbackRate.value
 
         if (this.audioContext.state === 'suspended') {
             this.audioContext.resume();
         }
         this.audioCurrentGetStream();
-        this.audioSource.start(startAt, 0, this.audioSource.buffer.duration);
+        this.audioSource.start(0, startAt, this.audioSource.buffer.duration);
     }
     stop = () => {
         this.audioSource.stop(0);
@@ -326,6 +327,7 @@ export class AudioTrack{
         }
     }
     copyWave = () => {
+        if(this.app.selectMode === 'channel') return;
         if(this.app.selectedTrackID !== this.trackID) {
             return;
         }
@@ -349,6 +351,7 @@ export class AudioTrack{
         }
     }
     deleteWave = () => {
+        if(this.app.selectMode === 'channel') return;
         if(this.app.selectedTrackID !== this.trackID) {
             return;
         }
@@ -371,6 +374,7 @@ export class AudioTrack{
         this.darkenSelection(this.selectedX1, this.selectedX2)
     }
     pasteWave = x => {
+        if(this.app.selectMode === 'channel') return;
         if(this.app.selectedTrackID !== this.trackID || !this.app.copiedBuffer) {
             return;
         }
@@ -389,7 +393,6 @@ export class AudioTrack{
         const blockSize = this.app.blockSize
         for(let i = 0; i < this.numberOfChannels; i++){
             destData = this.audioSource.buffer.getChannelData(i);
-
             pasteData = this.app.copiedBuffer.getChannelData(i);
             const start = (x * blockSize)
 
@@ -399,10 +402,10 @@ export class AudioTrack{
 
             this.audioSource.buffer.copyToChannel(destData, i)
         }
-
+        
         this.draw(this.offsetWidth, this.offsetHeight);
         
-        const width = this.app.copiedBuffer.duration * this.app.canvasLengthPerDuration / this.app.sampleDensity
+        const width = this.app.copiedBuffer.duration * this.app.samplePerDuration / this.app.sampleDensity
         
         this.cancelDarkenSelection(this.selectedX1, this.selectedX2)
         this.selectedX1 = x;

@@ -70,12 +70,16 @@ export class App {
                 console.log('play start')
 
                 let initial = Object.keys(this.audioTracks)[0];
-                this.startTime = this.audioTracks[initial].audioContext.currentTime4
-                console.log(this.audioTracks[initial].audioSource.buffer.duration)
+                this.startTime = this.audioTracks[initial].audioContext.currentTime
                 this.timer = setInterval(() => {
-                    this.playbackTime += this.playbackBarSpeed
+                    this.playbackBarSpeed = this.samplePerDuration / this.sampleDensity;
+                    this.playbackTime += (this.playbackBarSpeed / 1000)
+                        * Math.round(this.audioTracks[initial].audioSource.playbackRate.value * 10) / 10
+
+                    // this.playbackTime = (this.samplePerDuration / this.sampleDensity / 1000)
+                    //     * (this.audioTracks[initial].audioContext.currentTime - this.startTime)
                     this.playAudio.drawPlaybackBar(this.playbackTime);
-                }, 1000);
+                }, 1);
                 for(var i in this.audioTracks){
                     let currentTrack = this.audioTracks[i];
                     currentTrack.play(this.playbackTime);
@@ -86,7 +90,7 @@ export class App {
 
                 this.isPlaying = false;
                 let initial = Object.keys(this.audioTracks)[0];
-                this.playbackTime += this.audioTracks[initial].audioContext.currentTime - this.startTime
+                this.playbackTime = this.audioTracks[initial].audioContext.currentTime - this.startTime
                 this.playAudio.drawPlaybackBar(this.playbackTime);
                 if(this.timer != null) {
                     clearInterval(this.timer);
@@ -155,7 +159,7 @@ export class App {
         this.$zoomValue.value = this.sampleDensity
         for(var trackID in this.audioTracks){
             let track = this.audioTracks[trackID]
-            const width = Math.floor(track.audioCurrent.buffer.duration) 
+            const width = Math.floor(track.audioSource.buffer.duration) 
                     * this.samplePerDuration / this.sampleDensity + this.trackPadding * 2;
             track.draw(width, track.offsetHeight)
         }

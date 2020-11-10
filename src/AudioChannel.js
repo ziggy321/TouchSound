@@ -37,13 +37,13 @@ export class AudioChannel{
                 this.selectChannel.call(this)
             }
         });
-        this.track.$trackChannelList.addEventListener('mousedown', () => {
+        this.track.$trackChannelList.addEventListener('mousedown', event => {
             let currentY = event.clientY - this.track.$canvas.getBoundingClientRect().top
             if(currentY >= top && currentY <= top + channelHeight){
                 this.mouseDown.call(this)
             }
         })
-        this.track.$trackChannelList.addEventListener('mouseup', () => {
+        this.track.$trackChannelList.addEventListener('mouseup', event => {
             let currentY = event.clientY - this.track.$canvas.getBoundingClientRect().top
             if(currentY >= top && currentY <= top + channelHeight){
                 this.mouseUp.call(this)
@@ -54,8 +54,8 @@ export class AudioChannel{
             this.copyWave.call(this)
             this.deleteWave.call(this)
         })
-        this.$pasteButton.addEventListener('click', this.pasteWave.bind(this, this.track.app.currentTime))
-        this.$deleteButton.addEventListener('click', this.deleteWave.bind(this, this.track.app.currentTime))
+        this.$pasteButton.addEventListener('click', this.pasteWave.bind(this, this.track.app.playbackTime))
+        this.$deleteButton.addEventListener('click', this.deleteWave.bind(this, this.track.app.playbackTime))
 
         this.audioWave = new AudioWave({
             channel: this, 
@@ -117,7 +117,6 @@ export class AudioChannel{
     }
 
     mouseDown = () => {
-        if(this.track.app.selectMode !== 'channel') return;
         if(this.track.app.selectedTrackID !== this.track.trackID || this.track.app.selectedChannelID !== this.channelNum) {
             return;
         }
@@ -127,11 +126,11 @@ export class AudioChannel{
             this.selectedX2 = 0;
             return;
         }
+        if(this.track.app.selectMode !== 'channel') return;
         
         this.selectedX1 = window.event.clientX - this.$canvas.getBoundingClientRect().left;
     }
     mouseUp = () => {
-        if(this.track.app.selectMode !== 'channel') return;
         if(this.track.app.selectedTrackID !== this.track.trackID || this.track.app.selectedChannelID !== this.channelNum) {
             return;
         }
@@ -139,6 +138,7 @@ export class AudioChannel{
             this.isDarkened = false;
             return;
         }
+        if(this.track.app.selectMode !== 'channel') return;
         this.isDarkened = true;
         
         this.selectedX2 = window.event.clientX - this.$canvas.getBoundingClientRect().left;
@@ -229,6 +229,7 @@ export class AudioChannel{
         this.darkenSelection(this.selectedX1, this.selectedX2)
     }
     pasteWave = x => {
+        console.log(this.track.app.selectMode)
         if(this.track.app.selectMode !== 'channel') return;
         if(this.track.app.selectedTrackID !== this.track.trackID || this.track.app.selectedChannelID !== this.channelNum) {
             return;
