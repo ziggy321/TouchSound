@@ -243,6 +243,20 @@ export class AudioTrack{
     stop = () => {
         this.audioSource.stop(0);
     }
+    ////
+    // drawPlaybackBar = x => {
+    //     if(x >= this.$canvas.width){
+    //         this.$canvas.width *= 2;
+    //     }
+    //     this.$canvas.height = this.app.defaultHeight + this.app.wavePadding * 2
+    //     this.canvasCtx.lineWidth = 1;
+    //     this.canvasCtx.strokeStyle = 'rgb(0, 0, 0)';
+    //     this.canvasCtx.beginPath();
+    //     this.canvasCtx.moveTo(x, 0)
+    //     this.canvasCtx.lineTo(x, this.$canvas.height)
+    //     this.canvasCtx.stroke();
+    // }
+    ////
 
     // methods for editing
     selectAudio = () => {

@@ -72,12 +72,11 @@ export class App {
                 let initial = Object.keys(this.audioTracks)[0];
                 this.startTime = this.audioTracks[initial].audioContext.currentTime
                 this.timer = setInterval(() => {
-                    this.playbackBarSpeed = this.samplePerDuration / this.sampleDensity;
-                    this.playbackTime += (this.playbackBarSpeed / 1000)
-                        * Math.round(this.audioTracks[initial].audioSource.playbackRate.value * 10) / 10
+                    this.playbackBarSpeed = this.audioTracks[initial].rate * this.samplePerDuration / this.sampleDensity;
+                    // this.playbackTime += (this.playbackBarSpeed / 1)
+                    //     * Math.round(this.audioTracks[initial].audioSource.playbackRate.value * 10) / 10
 
-                    // this.playbackTime = (this.samplePerDuration / this.sampleDensity / 1000)
-                    //     * (this.audioTracks[initial].audioContext.currentTime - this.startTime)
+                    this.playbackTime = this.playbackBarSpeed * (this.audioTracks[initial].audioContext.currentTime - this.startTime)
                     this.playAudio.drawPlaybackBar(this.playbackTime);
                 }, 1);
                 for(var i in this.audioTracks){
@@ -90,7 +89,8 @@ export class App {
 
                 this.isPlaying = false;
                 let initial = Object.keys(this.audioTracks)[0];
-                this.playbackTime = this.audioTracks[initial].audioContext.currentTime - this.startTime
+                this.playbackBarSpeed = this.audioTracks[initial].rate * this.samplePerDuration / this.sampleDensity;
+                this.playbackTime = this.playbackBarSpeed * (this.audioTracks[initial].audioContext.currentTime - this.startTime)
                 this.playAudio.drawPlaybackBar(this.playbackTime);
                 if(this.timer != null) {
                     clearInterval(this.timer);
