@@ -167,7 +167,7 @@ export class AudioTrack{
 
         // this.renderAudio();
     }
-    setAudioSource = audioSource => {
+    setAudioSource = audioSource => {//채널 변수와 멤버 수를 초기화
         this.audioSource = audioSource
         this.numberOfChannels = audioSource.buffer.numberOfChannels
         this.rateLevel = this.audioSource.playbackRate.value;
@@ -284,7 +284,6 @@ export class AudioTrack{
             this.selectedX2 = 0;
             return;
         }
-        
         if(this.app.selectMode !== 'track') return;
         this.selectedX1 = window.event.clientX - this.$canvas.getBoundingClientRect().left
     }

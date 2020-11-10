@@ -1,11 +1,11 @@
 export class SaveAudio{
     constructor({audioContext, putFileName}){
-        const $SaveAudio = document.querySelector('.SaveAudio');
+        const $saveAudio = document.querySelector('.saveAudio');
         this.audioChunks = [];
         this.filename = "";
         this.inputBlankOpen = false;
 
-        $SaveAudio.addEventListener('click', putFileName);
+        $saveAudio.addEventListener('click', putFileName);
     }
 
     readyToSaveFile(audioContext, audioComplete, filename){
