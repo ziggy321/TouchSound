@@ -122,25 +122,25 @@ export class App {
         })
 
         this.saveAudio = new SaveAudio({
+            app: this,
             putFileName: () => {
-                if(this.saveAudio.inputBlankOpen) return;
+                this.saveAudio.filename = prompt("파일명을 입력하세요.", "output");
 
-                const currentTrack = this.audioTracks[0];
-
-                this.saveAudio.inputBlankOpen = true;
-                const $downloadAudio = document.querySelector('.downloadAudio')
-                const $filename = document.createElement('input')
-                $filename.type = 'text'
-                $filename.placeholder = '파일명을 입력하세요.'
-                $downloadAudio.appendChild($filename);
-        
-                $filename.addEventListener('keydown', event => {
-                    if(event.key == 'Enter'){
-                        this.$saveAudio.readyToSaveFile(currentTrack.audioContext, currentTrack.audioCurrent, event.target.value);
-                        $downloadAudio.innerHTML = ``;
-                        this.$saveAudio.inputBlankOpen = false;
-                    }
-                })
+                // if(this.saveAudio.inputBlankOpen) return;
+                // const currentTrack = this.audioTracks[0];
+                // this.saveAudio.inputBlankOpen = true;
+                // const $downloadAudio = document.querySelector('.downloadAudio')
+                // const $filename = document.createElement('input')
+                // $filename.type = 'text'
+                // $filename.placeholder = '파일명을 입력하세요.'
+                // $downloadAudio.appendChild($filename);
+                // $filename.addEventListener('keydown', event => {
+                //     if(event.key == 'Enter'){
+                //         this.$saveAudio.readyToSaveFile(currentTrack.audioContext, currentTrack.audioCurrent, event.target.value);
+                //         $downloadAudio.innerHTML = ``;
+                //         this.$saveAudio.inputBlankOpen = false;
+                //     }
+                // })
             }
         });
 
