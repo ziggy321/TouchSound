@@ -87,7 +87,7 @@ export class AudioEffect{
             track.gain.gain.value += this.volumeChangeUnit;
             this.$volume.value = Math.round(track.gain.gain.value * 10) / 10
         }
-        track.renderAudio();
+        // track.renderAudio();
     }
     volumeDown = () => {
         let track = this.getTrack();
