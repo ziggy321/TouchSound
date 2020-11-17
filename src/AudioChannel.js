@@ -68,13 +68,31 @@ export class AudioChannel{
         // Set up the canvas
         if(w > this.offsetWidth){
             this.offsetWidth = w;
-            this.offsetHeight = h;
 
             this.$canvas.width = this.offsetWidth// * this.dpr;
+
+            this.canvasCtx.clearRect(0, 0, this.$canvas.width, this.$canvas.height);
+            this.canvasCtx.fillStyle = 'rgb(200, 200, 200)';
+            this.canvasCtx.fillRect(0, 0, this.$canvas.width, this.$canvas.height);
+            
+            this.canvasCtx.translate(0, this.offsetHeight / 2 + this.padding); // Set Y = 0 to be in the middle of the canvas
+        }
+        if(h !== this.offsetHeight){
+            const channelHeight = (this.track.$canvas.height - 4 - (this.track.numberOfChannels - 1)*2) / this.track.numberOfChannels
+            const top = 2 + (channelHeight + 2) * this.channelNum;
+            this.$canvas.style = `
+                z-index: 2;
+                position: absolute;
+                left: 2px;
+                top: ${top}px;
+            `;
+
+            this.offsetHeight = h;
+
             this.$canvas.height = (this.offsetHeight + this.padding * 2)// * this.dpr;
 
             this.canvasCtx.clearRect(0, 0, this.$canvas.width, this.$canvas.height);
-            this.canvasCtx.fillStyle = 'rgb(200, 200, 200)'; // draw wave with canvas
+            this.canvasCtx.fillStyle = 'rgb(200, 200, 200)';
             this.canvasCtx.fillRect(0, 0, this.$canvas.width, this.$canvas.height);
             
             this.canvasCtx.translate(0, this.offsetHeight / 2 + this.padding); // Set Y = 0 to be in the middle of the canvas

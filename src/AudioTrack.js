@@ -97,9 +97,22 @@ export class AudioTrack{
         // draw track canvas
         if(w > this.offsetWidth){
             this.offsetWidth = w;
-            this.offsetHeight = h;
+            // this.offsetHeight = h;
 
             this.$canvas.width = this.offsetWidth// * this.dpr;
+            // this.$canvas.height = (this.offsetHeight + this.padding * 2)// * this.dpr;
+
+            this.canvasCtx.clearRect(0, 0, this.$canvas.width, this.$canvas.height);
+            this.canvasCtx.fillStyle = 'rgb(100, 100, 100)';
+            this.canvasCtx.fillRect(0, 0, this.$canvas.width, this.$canvas.height);
+            
+            this.canvasCtx.translate(0, this.offsetHeight / 2 + this.padding); // Set Y = 0 to be in the middle of the canvas
+        }
+        if(h !== this.offsetHeight){
+            // this.offsetWidth = w;
+            this.offsetHeight = h;
+
+            // this.$canvas.width = this.offsetWidth// * this.dpr;
             this.$canvas.height = (this.offsetHeight + this.padding * 2)// * this.dpr;
 
             this.canvasCtx.clearRect(0, 0, this.$canvas.width, this.$canvas.height);

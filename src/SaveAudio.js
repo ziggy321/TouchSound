@@ -1,5 +1,5 @@
 export class SaveAudio{
-    constructor({app, putFileName}) {
+    constructor({app}) {
         this.app = app;
         const $saveAudio = document.querySelector('.saveAudio');
         this.filename = "";
@@ -7,7 +7,7 @@ export class SaveAudio{
 
         //Load button listener
         $saveAudio.addEventListener('click', () => {
-            putFileName();
+            this.saveAudio.filename = prompt("파일명을 입력하세요.", "output");
             let buffer = this.app.audioTracks[0].audioSource.buffer;
             this.processAudio(buffer);
             this.renderAudio();

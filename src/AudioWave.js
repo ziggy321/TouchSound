@@ -1,5 +1,5 @@
 export class AudioWave{
-    waveMax = 0.3;
+    waveMax = 0.3
 
     constructor({channel, audioData, channelNum}){
         this.channel = channel;
@@ -39,6 +39,7 @@ export class AudioWave{
         return filteredData;
     }
     normalizeData = filteredData => {
+        console.log(this.channel.track.offsetHeight)
         return filteredData.map(n => {
             let ret = n / this.waveMax
             ret = (ret > 1) ? 1 : (ret < -1) ? -1 : ret;
@@ -62,6 +63,12 @@ export class AudioWave{
         let normalizedData = this.normalizeData(filteredData);
 
         // Set up the canvas
+        this.$canvas.style = `
+            z-index: 2;
+            position: absolute;
+            left: 2px;
+            top: ${2 + (this.channel.track.$canvas.height / this.channel.track.numberOfChannels - 1) * this.channelNum}px;
+        `;
         this.offsetWidth = normalizedData.length / this.channel.track.app.sampleDensity;
         this.offsetHeight = this.channel.track.offsetHeight / this.channel.track.numberOfChannels - 2;
         this.$canvas.width = this.offsetWidth

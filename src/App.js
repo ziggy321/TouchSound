@@ -20,6 +20,7 @@ export class App {
     sampleDensity = 1; // 오디오 길이 1픽셀당 샘플(blockSize) 몇 개 그려지는지 결정
     trackPadding = 2; // track와 channel 사이의 padding
     wavePadding = 20; // channel canvas 내부에서 wave의 maxHeight과 위아래 사이의 padding
+    verticalZoomProportion = 1; // 세로 줌의 상태
 
     selectMode = 'track';
     selectedTrackID = 0;
@@ -38,22 +39,34 @@ export class App {
         this.$trackList = document.querySelector('.trackList')
         this.createTrack();
 
-        this.$zoomValue = document.querySelector('.zoom')
-        this.$zoomInButton = document.querySelector('.zoomIn')
-        this.$zoomOutButton = document.querySelector('.zoomOut')
+        this.$zoomHorizontalValue = document.querySelector('.zoomHorizontal')
+        this.$zoomHorizontalInButton = document.querySelector('.zoomHorizontalIn')
+        this.$zoomHorizontalOutButton = document.querySelector('.zoomHorizontalOut')
+        this.$zoomVerticalValue = document.querySelector('.zoomVertical')
+        this.$zoomVerticalInButton = document.querySelector('.zoomVerticalIn')
+        this.$zoomVerticalOutButton = document.querySelector('.zoomVerticalOut')
         this.$createTrackButton = document.querySelector('.createTrack')
         this.$deleteTrackButton = document.querySelector('.deleteTrack')
         this.$selectMode = document.querySelector('.selectMode')
 
         this.$createTrackButton.addEventListener('click', this.createTrack.bind(this));
         this.$selectMode.addEventListener('change', this.switchSelectMode.bind(this))
-        this.$zoomValue.addEventListener('keyup', event => {
+
+        this.$zoomHorizontalValue.addEventListener('keyup', event => {
             if(event.key === 'Enter'){
-                this.setZoom();
+                this.setZoomHorizontal();
             }
         })
-        this.$zoomInButton.addEventListener('click', this.zoomIn.bind(this))
-        this.$zoomOutButton.addEventListener('click', this.zoomOut.bind(this))
+        this.$zoomHorizontalInButton.addEventListener('click', this.zoomHorizontalIn.bind(this))
+        this.$zoomHorizontalOutButton.addEventListener('click', this.zoomHorizontalOut.bind(this))
+
+        this.$zoomVerticalValue.addEventListener('keyup', event => {
+            if(event.key === 'Enter'){
+                this.setZoomVertical();
+            }
+        })
+        this.$zoomVerticalInButton.addEventListener('click', this.zoomVerticalIn.bind(this))
+        this.$zoomVerticalOutButton.addEventListener('click', this.zoomVerticalOut.bind(this))
 
         document.addEventListener('click', event => {
             document.querySelectorAll('.closeAudio').forEach($item => {
@@ -122,26 +135,7 @@ export class App {
         })
 
         this.saveAudio = new SaveAudio({
-            app: this,
-            putFileName: () => {
-                this.saveAudio.filename = prompt("파일명을 입력하세요.", "output");
-
-                // if(this.saveAudio.inputBlankOpen) return;
-                // const currentTrack = this.audioTracks[0];
-                // this.saveAudio.inputBlankOpen = true;
-                // const $downloadAudio = document.querySelector('.downloadAudio')
-                // const $filename = document.createElement('input')
-                // $filename.type = 'text'
-                // $filename.placeholder = '파일명을 입력하세요.'
-                // $downloadAudio.appendChild($filename);
-                // $filename.addEventListener('keydown', event => {
-                //     if(event.key == 'Enter'){
-                //         this.$saveAudio.readyToSaveFile(currentTrack.audioContext, currentTrack.audioCurrent, event.target.value);
-                //         $downloadAudio.innerHTML = ``;
-                //         this.$saveAudio.inputBlankOpen = false;
-                //     }
-                // })
-            }
+            app: this
         });
 
         this.audioEffect = new AudioEffect({
@@ -156,8 +150,8 @@ export class App {
         // 1 duration 당 data의 길이(오디오 데이터 배열의 길이)는 48000이다.
         // 이를 samplePerDuration으로 나누면 blockSize(샘플 1개의 길이)가 된다.
     }
-    zoomChange = () => {
-        this.$zoomValue.value = this.sampleDensity
+    zoomHorizontalChange = () => {
+        this.$zoomHorizontalValue.value = this.sampleDensity
         for(var trackID in this.audioTracks){
             let track = this.audioTracks[trackID]
             const width = Math.floor(track.audioSource.buffer.duration) 
@@ -165,24 +159,53 @@ export class App {
             track.draw(width, track.offsetHeight)
         }
     }
-    setZoom = () => {
-        let zoom = Math.round(this.$zoomValue.value * 10) / 10
-        if(zoom < 0){
-            zoom = 1;
+    setZoomHorizontal = () => {
+        let zoomHorizontal = Math.round(this.$zoomHorizontalValue.value * 10) / 10
+        if(zoomHorizontal < 0){
+            zoomHorizontal = 1;
         }
-        this.sampleDensity = zoom;
-        this.zoomChange();
+        this.sampleDensity = zoomHorizontal;
+        this.zoomHorizontalChange();
     }
-    zoomIn = () => {
+    zoomHorizontalIn = () => {
         if(Math.round(this.sampleDensity * 10) / 10 === 0.1) return;
         this.sampleDensity -= this.zoomChangeUnit;
         this.sampleDensity = Math.round(this.sampleDensity * 10) / 10
-        this.zoomChange();
+        this.zoomHorizontalChange();
     }
-    zoomOut = () => {
+    zoomHorizontalOut = () => {
         this.sampleDensity += this.zoomChangeUnit;
         this.sampleDensity = Math.round(this.sampleDensity * 10) / 10
-        this.zoomChange();
+        this.zoomHorizontalChange();
+    }
+
+    zoomVerticalChange = () => {
+        this.$zoomVerticalValue.value = this.verticalZoomProportion
+        for(var trackID in this.audioTracks){
+            let track = this.audioTracks[trackID]
+            const height = this.defaultHeight * this.$zoomVerticalValue.value
+            console.log(height)
+            track.draw(track.offsetWidth, height)
+        }
+    }
+    setZoomVertical = () => {
+        let zoomVertical = Math.round(this.$zoomVerticalValue.value * 10) / 10
+        if(zoomVertical < 0){
+            zoomVertical = 1;
+        }
+        this.$zoomVerticalValue.value = zoomVertical;
+        this.zoomVerticalChange();
+    }
+    zoomVerticalIn = () => {
+        if(Math.round(this.sampleDensity * 10) / 10 === 0.1) return;
+        this.verticalZoomProportion -= this.zoomChangeUnit;
+        this.verticalZoomProportion = Math.round(this.verticalZoomProportion * 10) / 10
+        this.zoomVerticalChange();
+    }
+    zoomVerticalOut = () => {
+        this.verticalZoomProportion += this.zoomChangeUnit;
+        this.verticalZoomProportion = Math.round(this.verticalZoomProportion * 10) / 10
+        this.zoomVerticalChange();
     }
 
     createTrack = () => {

@@ -20,35 +20,7 @@ export class RecordAudio {
         this.$recordButton.addEventListener('click',async x => {
             await this.switchRecording(x);  
         });
-       
-
-
-        // this.playButton.addEventListener('click', () => {
-        //     this.audio.play();
-        // });
-   
-        // this.saveButton.addEventListener('click', () => {
-        //    const reader = new FileReader();
-        //    this.reader.readAsDataURL(this.audio.audioBlob);
-        //    this.reader.onload = () => {
-        //     const base64AudioMessage = this.reader.result.split(',')[1];
-   
-        //    fetch('/messages', {
-        //         method: 'POST',
-        //         headers: { 'Content-Type': 'application/json' },
-        //         body: JSON.stringify({ message: base64AudioMessage })
-        //    }).then(res => {
-        //     if (res.status === 201) {
-        //        return populateAudioMessages();
-        //     }
-        //    console.log('Invalid status saving audio message: ' + res.status);
-        //    });
-        //   };
-        // });
-   
     }
-    
-    
     
     start = () => {
         this.audioChunks = [];
@@ -86,7 +58,7 @@ export class RecordAudio {
     
     sleep = time => new Promise(resolve => setTimeout(resolve, time));
     
-    switchRecording =async x => {
+    switchRecording = async x => {
         
         this.audio;
         this.recorder;
@@ -115,24 +87,4 @@ export class RecordAudio {
         }
         
     }   
-    
-    populateAudioMessages = () => {
-        return fetch('/messages').then(res => {
-        if (res.status === 200) {
-        return res.json().then(json => {
-        json.messageFilenames.forEach(filename => {
-            let audioElement = document.querySelector(`[data-audio-filename="${filename}"]`);
-        if (!audioElement) {
-          audioElement = document.createElement('audio');
-          audioElement.src = `/messages/${filename}`;
-          audioElement.setAttribute('data-audio-filename', filename);
-          audioElement.setAttribute('controls', true);
-          savedAudioMessagesContainer.appendChild(audioElement);
-        }
-            });
-        });
-        }
-    console.log('Invalid status getting messages: ' + res.status);
-        });
-    };
 }
