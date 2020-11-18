@@ -42,7 +42,6 @@ export class SaveAudio{
         if (offset == null) offset = 0;
         else if (offset < 0) offset += bufferA.length;
     
-        console.log(bufferA, bufferB);
         for (var channel = 0; channel < bufferA.numberOfChannels; channel++) {
             var aData = bufferA.getChannelData(channel);
             var bData = bufferB.getChannelData(channel);
@@ -77,8 +76,7 @@ export class SaveAudio{
             this.renderedBuffers.push(renderedBuffer);
             if(this.renderedBuffers.length === Object.keys(this.app.audioTracks).length){
                 for(let j in this.renderedBuffers){
-                    console.log(this.mixedBuffer)
-                    this.mixBuffer.call(this, this.mixedBuffer, this.renderedBuffers[j]);
+                    this.mixBuffer(this.mixedBuffer, this.renderedBuffers[j]);
                 }
                 this.make_download(this.mixedBuffer, this.offlineAudioCtx[i].length);
             }
