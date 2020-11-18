@@ -184,7 +184,6 @@ export class App {
         for(var trackID in this.audioTracks){
             let track = this.audioTracks[trackID]
             const height = this.defaultHeight * this.$zoomVerticalValue.value
-            console.log(height)
             track.draw(track.offsetWidth, height)
         }
     }

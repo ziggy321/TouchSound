@@ -400,7 +400,7 @@ export class AudioTrack{
         this.darkenSelection(this.selectedX1, this.selectedX2)
     }
     pasteWave = () => {
-        const x =  this.app.playbackTime
+        const x = this.app.playbackTime
         if(this.app.selectMode === 'channel') return;
         if(this.app.selectedTrackID !== this.trackID || !this.app.copiedBuffer) {
             return;
@@ -416,28 +416,62 @@ export class AudioTrack{
             }
         }
 
-        let destData, pasteData;
+        let prevData, pasteData, newData, newBuffer, prevNoDarken = false;
         const blockSize = this.app.blockSize
         for(let i = 0; i < this.numberOfChannels; i++){
-            destData = this.audioSource.buffer.getChannelData(i);
+            prevData = this.audioSource.buffer.getChannelData(i);
             pasteData = this.app.copiedBuffer.getChannelData(i);
-            const start = (x * blockSize)
 
-            for(let j = 0; j < pasteData.length; j++){
-                destData[j + start] = pasteData[j];
+            if(!this.isDarkened){
+                prevNoDarken = true
+                const start = x * blockSize
+                newData = this.float32ArrayConcat(prevData.slice(0, start), pasteData, prevData.slice(start))
+            }
+            else{
+                const start = this.selectedX1 * blockSize
+                const end = this.selectedX2 * blockSize
+                newData = this.float32ArrayConcat(prevData.slice(0, start), pasteData, prevData.slice(end))
             }
 
-            this.audioSource.buffer.copyToChannel(destData, i)
+            if(i === 0){
+                newBuffer = this.audioContext.createBuffer(this.numberOfChannels, 
+                    newData.length, this.audioSource.buffer.sampleRate)
+            }
+
+            newBuffer.copyToChannel(newData, i)
         }
-        
-        this.draw(this.offsetWidth, this.offsetHeight);
+        this.audioSource = this.audioContext.createBufferSource();
+        this.audioSource.buffer = newBuffer;
+
+        const trackWidth = this.audioSource.buffer.duration * this.app.samplePerDuration / this.app.sampleDensity
+
+        this.draw(trackWidth, this.offsetHeight);
         
         const width = this.app.copiedBuffer.duration * this.app.samplePerDuration / this.app.sampleDensity
         
         this.cancelDarkenSelection(this.selectedX1, this.selectedX2)
-        this.selectedX1 = x;
-        this.selectedX2 = x + width;
-        this.isDarkened = true;
+        if(prevNoDarken){
+            this.selectedX1 = x;
+            this.selectedX2 = x + width;
+            this.isDarkened = true;
+        }
+        else{
+            this.selectedX2 = this.selectedX1 + width;
+        }
         this.darkenSelection(this.selectedX1, this.selectedX2)
+    }
+
+    float32ArrayConcat = (...arrays) => {
+        let totalLength = 0;
+        for (let arr of arrays) {
+            totalLength += arr.length;
+        }
+        let result = new Float32Array(totalLength);
+        let offset = 0;
+        for (let arr of arrays) {
+            result.set(arr, offset);
+            offset += arr.length;
+        }
+        return result;
     }
 }

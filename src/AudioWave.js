@@ -39,7 +39,6 @@ export class AudioWave{
         return filteredData;
     }
     normalizeData = filteredData => {
-        console.log(this.channel.track.offsetHeight)
         return filteredData.map(n => {
             let ret = n / this.waveMax
             ret = (ret > 1) ? 1 : (ret < -1) ? -1 : ret;
@@ -83,7 +82,6 @@ export class AudioWave{
             let height = normalizedData[i] * (this.offsetHeight / 2)
             this.drawLineSegment(this.canvasCtx, x, height, width, (i + 1) % 2);
         }
-        console.log('drawn')
     };
 
 }
