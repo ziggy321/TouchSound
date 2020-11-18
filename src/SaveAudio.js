@@ -7,25 +7,42 @@ export class SaveAudio{
 
         //Load button listener
         $saveAudio.addEventListener('click', () => {
-            this.saveAudio.filename = prompt("파일명을 입력하세요.", "output");
-            let buffer = this.app.audioTracks[0].audioSource.buffer;
-            this.processAudio(buffer);
-            this.renderAudio();
+            this.filename = prompt("파일명을 입력하세요.", "output");
+            this.soundSource = [];
+            this.offlineAudioCtx = [];
+            this.renderedBuffers = [];
+            let buffers = [];
+            
+            for(let i in this.app.audioTracks){
+                let buffer = this.app.audioTracks[i].audioSource.buffer
+                if(buffer === null) {
+                    alert("저장할 트랙이 없습니다.");
+                    return;
+                }
+                buffers.push(buffer)
+                this.processAudio(buffer, i);
+            }
+            
+            let initial = Object.keys(this.app.audioTracks)[0];
+            this.mixedBuffer = this.audioCtx.createBuffer(this.soundSource[initial].buffer.numberOfChannels, 
+                this.soundSource[initial].buffer.length, this.soundSource[initial].buffer.sampleRate);
+
+            for(let i in this.app.audioTracks){
+                this.renderAudio(i);
+            }
         })
     }
 
-    mix = (bufferA, bufferB, ratio, offset) => {
-        if (!isAudioBuffer(bufferA)) throw new Error('Argument should be an AudioBuffer instance.');
-        if (!isAudioBuffer(bufferB)) throw new Error('Argument should be an AudioBuffer instance.');
-    
+    mixBuffer = (bufferA, bufferB, ratio, offset) => {    
         if (ratio == null) ratio = 0.5;
         var fn = ratio instanceof Function ? ratio : function (a, b) {
-            return a * (1 - ratio) + b * ratio;
+            return a + b // a * (1 - ratio) + b * ratio;
         };
     
         if (offset == null) offset = 0;
         else if (offset < 0) offset += bufferA.length;
     
+        console.log(bufferA, bufferB);
         for (var channel = 0; channel < bufferA.numberOfChannels; channel++) {
             var aData = bufferA.getChannelData(channel);
             var bData = bufferB.getChannelData(channel);
@@ -39,25 +56,32 @@ export class SaveAudio{
     }
 
     // Process Audio
-    processAudio = buffer => {
-        this.offlineAudioCtx = new OfflineAudioContext(buffer.numberOfChannels, buffer.length, buffer.sampleRate);
+    processAudio = (buffer, i) => {
+        this.offlineAudioCtx.push(new OfflineAudioContext(buffer.numberOfChannels, buffer.length, buffer.sampleRate));
 
         // Audio Buffer Source
-        this.soundSource = this.offlineAudioCtx.createBufferSource();
-        this.soundSource.buffer = buffer;
+        this.soundSource.push(this.offlineAudioCtx[i].createBufferSource());
+        this.soundSource[i].buffer = buffer;
     }
 
     // Connect nodes to destination
-    renderAudio = () => {
-        this.soundSource.connect(this.offlineAudioCtx.destination);
-        if(this.offlineAudioCtx.state === 'closed'){
-            this.offlineAudioCtx.resume()
+    renderAudio = i => {
+        this.soundSource[i].connect(this.offlineAudioCtx[i].destination);
+        if(this.offlineAudioCtx[i].state === 'closed'){
+            this.offlineAudioCtx[i].resume()
         }
 
-        this.soundSource.start();
+        this.soundSource[i].start();
 
-        this.offlineAudioCtx.startRendering().then(renderedBuffer => {
-            this.make_download(renderedBuffer, this.offlineAudioCtx.length);
+        this.offlineAudioCtx[i].startRendering().then(renderedBuffer => {
+            this.renderedBuffers.push(renderedBuffer);
+            if(this.renderedBuffers.length === Object.keys(this.app.audioTracks).length){
+                for(let j in this.renderedBuffers){
+                    console.log(this.mixedBuffer)
+                    this.mixBuffer.call(this, this.mixedBuffer, this.renderedBuffers[j]);
+                }
+                this.make_download(this.mixedBuffer, this.offlineAudioCtx[i].length);
+            }
         }).catch(function(err) {
             console.log(err)
         });

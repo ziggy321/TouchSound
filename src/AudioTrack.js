@@ -12,6 +12,7 @@ export class AudioTrack{
 
     isRendered = false;
 
+    mousePressed = false;
     isDarkened = false; // 선택된 영역(darkened)이 있는지
     selectedX1 = 0; // 드래그할 때 마우스를 누른 캔버스 좌표
     selectedX2 = 0; // 드래그할 때 마우스를 뗀 캔버스 좌표
@@ -68,6 +69,7 @@ export class AudioTrack{
         this.$deleteButton = document.querySelector('.deleteAudio')
         this.$trackElement.addEventListener('click', this.selectAudio.bind(this))
         this.$trackChannelList.addEventListener('mousedown', this.mouseDown.bind(this))
+        this.$trackChannelList.addEventListener('mousemove', this.mouseMove.bind(this))
         this.$trackChannelList.addEventListener('mouseup', this.mouseUp.bind(this))
         this.$copyButton.addEventListener('click', this.copyWave.bind(this))
         this.$cutButton.addEventListener('click', () => {
@@ -287,34 +289,42 @@ export class AudioTrack{
         this.borderTrack();
         this.showTrackAttributes();
     }
+    
     mouseDown = () => {
         if(this.app.selectedTrackID !== this.trackID) {
             return;
         }
-        if(this.isDarkened) {
-            this.cancelDarkenSelection(this.selectedX1, this.selectedX2);
-            this.selectedX1 = 0;
-            this.selectedX2 = 0;
+        if(this.app.selectMode !== 'track') return;
+        this.mousePressed = true;
+        this.cancelDarkenSelection(this.selectedX1, this.selectedX2);
+        this.selectedX1 = window.event.clientX - this.$canvas.getBoundingClientRect().left;
+    };
+    mouseMove = () => {
+        if(!this.mousePressed) return;
+        if(this.app.selectedTrackID !== this.trackID) {
             return;
         }
         if(this.app.selectMode !== 'track') return;
-        this.selectedX1 = window.event.clientX - this.$canvas.getBoundingClientRect().left
-    }
+        this.isDarkened = true;
+        this.cancelDarkenSelection(this.selectedX1, this.selectedX2);
+        this.selectedX2 = window.event.clientX - this.$canvas.getBoundingClientRect().left;
+        this.darkenSelection(this.selectedX1, this.selectedX2);
+    };
     mouseUp = () => {
         if(this.app.selectedTrackID !== this.trackID) {
             return;
         }
-        if(this.isDarkened) {
-            this.isDarkened = false;
-            return;
-        }
-        
         if(this.app.selectMode !== 'track') return;
-        this.isDarkened = true;
-        this.selectedX2 = window.event.clientX - this.$canvas.getBoundingClientRect().left
-
-        this.darkenSelection(this.selectedX1, this.selectedX2)
-    }
+        this.mousePressed = false;
+        this.cancelDarkenSelection(this.selectedX1, this.selectedX2);
+        this.selectedX2 = window.event.clientX - this.$canvas.getBoundingClientRect().left; //Update the current position X
+        if(this.selectedX2 === this.selectedX1){
+            this.selectedX1 = 0;
+            this.selectedX2 = 0;
+            this.isDarkened = false;
+        }
+        this.darkenSelection(this.selectedX1, this.selectedX2);
+    };    
     borderTrack = () => {
         this.canvasCtx.fillStyle = 'rgb(255, 0, 0)'; // draw wave with canvas
         this.canvasCtx.fillRect(0, -this.$canvas.height/2, this.$canvas.width, 2);
@@ -330,6 +340,7 @@ export class AudioTrack{
         this.canvasCtx.fillRect(0, this.$canvas.height/2 - 2, this.$canvas.width, 2);
     }
     darkenSelection = (x1, x2) => {
+        this.isDarkened = true;
         let left = (x1 < x2) ? x1 : x2
         let width = (x1 < x2) ? x2 - x1 : x1 - x2
 
@@ -342,6 +353,7 @@ export class AudioTrack{
     }
     cancelDarkenSelection = (x1, x2) => {
         if(x1 === x2) return;
+        this.isDarkened = false;
         let left = (x1 < x2) ? x1 : x2
         let width = (x1 < x2) ? x2 - x1 : x1 - x2
 
@@ -372,7 +384,7 @@ export class AudioTrack{
             let copiedAudioData = new Float32Array((x2 - x1) * blockSize)
             for(let j = (x1 * blockSize); j < (x2 * blockSize); j++){
                 copiedAudioData[j - (x1 * blockSize)] = srcData[j];
-            }       
+            }
             this.app.copiedBuffer.copyToChannel(copiedAudioData, i)
         }
     }
@@ -416,18 +428,19 @@ export class AudioTrack{
             }
         }
 
-        let prevData, pasteData, newData, newBuffer, prevNoDarken = false;
+        let temp;
+        let prevData, pasteData, newData, newBuffer, prevDarken = false;
         const blockSize = this.app.blockSize
         for(let i = 0; i < this.numberOfChannels; i++){
             prevData = this.audioSource.buffer.getChannelData(i);
             pasteData = this.app.copiedBuffer.getChannelData(i);
 
             if(!this.isDarkened){
-                prevNoDarken = true
                 const start = x * blockSize
                 newData = this.float32ArrayConcat(prevData.slice(0, start), pasteData, prevData.slice(start))
             }
             else{
+                prevDarken = true
                 const start = this.selectedX1 * blockSize
                 const end = this.selectedX2 * blockSize
                 newData = this.float32ArrayConcat(prevData.slice(0, start), pasteData, prevData.slice(end))
@@ -444,13 +457,12 @@ export class AudioTrack{
         this.audioSource.buffer = newBuffer;
 
         const trackWidth = this.audioSource.buffer.duration * this.app.samplePerDuration / this.app.sampleDensity
-
         this.draw(trackWidth, this.offsetHeight);
         
         const width = this.app.copiedBuffer.duration * this.app.samplePerDuration / this.app.sampleDensity
         
         this.cancelDarkenSelection(this.selectedX1, this.selectedX2)
-        if(prevNoDarken){
+        if(!prevDarken){
             this.selectedX1 = x;
             this.selectedX2 = x + width;
             this.isDarkened = true;
