@@ -75,10 +75,12 @@ export class SaveAudio{
         this.offlineAudioCtx[i].startRendering().then(renderedBuffer => {
             this.renderedBuffers.push(renderedBuffer);
             if(this.renderedBuffers.length === Object.keys(this.app.audioTracks).length){
+                let maxLength = 0;
                 for(let j in this.renderedBuffers){
                     this.mixBuffer(this.mixedBuffer, this.renderedBuffers[j]);
+                    if(this.offlineAudioCtx[j].length > maxLength) maxLength = this.offlineAudioCtx[j].length
                 }
-                this.make_download(this.mixedBuffer, this.offlineAudioCtx[i].length);
+                this.make_download(this.mixedBuffer, maxLength);
             }
         }).catch(function(err) {
             console.log(err)
