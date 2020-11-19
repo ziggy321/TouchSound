@@ -5,6 +5,8 @@ export class AudioChannel{
     selectedX1 = 0; // 드래그할 때 마우스를 누른 캔버스 좌표
     selectedX2 = 0; // 드래그할 때 마우스를 뗀 캔버스 좌표
 
+    mousePressed = false;
+
     constructor({track, $trackElement, channelNum}){
         this.track = track;
         this.channelNum = channelNum
@@ -12,13 +14,13 @@ export class AudioChannel{
         // setup channel canvas
         this.$canvas = document.createElement('canvas');
         this.$canvas.className = 'channelBackground';
-        const channelHeight = (track.$canvas.height - 4 - (track.numberOfChannels - 1)*2) / track.numberOfChannels
-        const top = 2 + (channelHeight + 2) * channelNum;
+        this.channelHeight = (track.$canvas.height - 4 - (track.numberOfChannels - 1)*2) / track.numberOfChannels
+        this.top = 2 + (this.channelHeight + 2) * channelNum;
         this.$canvas.style = `
             z-index: 2;
             position: absolute;
             left: 2px;
-            top: ${top}px;
+            top: ${this.top}px;
         `;
         $trackElement.querySelector('.trackChannelList').appendChild(this.$canvas)
         this.canvasCtx = this.$canvas.getContext('2d');
@@ -33,19 +35,25 @@ export class AudioChannel{
         this.$deleteButton = document.querySelector('.deleteAudio')
         this.track.$trackChannelList.addEventListener('click', event => {
             let currentY = event.clientY - this.track.$canvas.getBoundingClientRect().top
-            if(currentY >= top && currentY <= top + channelHeight){
+            if(currentY >= this.top && currentY <= this.top + this.channelHeight){
                 this.selectChannel.call(this)
             }
         });
         this.track.$trackChannelList.addEventListener('mousedown', event => {
             let currentY = event.clientY - this.track.$canvas.getBoundingClientRect().top
-            if(currentY >= top && currentY <= top + channelHeight){
+            if(currentY >= this.top && currentY <= this.top + this.channelHeight){
                 this.mouseDown.call(this)
+            }
+        })
+        this.track.$trackChannelList.addEventListener('mousemove', event => {
+            let currentY = event.clientY - this.track.$canvas.getBoundingClientRect().top
+            if(currentY >= this.top && currentY <= this.top + this.channelHeight){
+                this.mouseMove.call(this)
             }
         })
         this.track.$trackChannelList.addEventListener('mouseup', event => {
             let currentY = event.clientY - this.track.$canvas.getBoundingClientRect().top
-            if(currentY >= top && currentY <= top + channelHeight){
+            if(currentY >= this.top && currentY <= this.top + this.channelHeight){
                 this.mouseUp.call(this)
             }
         })
@@ -123,14 +131,17 @@ export class AudioChannel{
                     let channel = track.channels[j];
                     if(channel.channelNum === this.track.app.selectedChannelID){
                         channel.unborderChannel();
+                        channel.cancelDarkenSelection(channel.selectedX1, channel.selectedX2);
+                        channel.selectedX1 = 0;
+                        channel.selectedX2 = 0;
                         break;
                     }
                 }
                 break;
             }
         }
-        this.track.app.selectedTrackID = this.track.trackID
-        this.track.app.selectedChannelID = this.channelNum
+        this.track.app.selectedTrackID = this.track.trackID;
+        this.track.app.selectedChannelID = this.channelNum;
         this.borderChannel();
     }
 
@@ -138,58 +149,64 @@ export class AudioChannel{
         if(this.track.app.selectedTrackID !== this.track.trackID || this.track.app.selectedChannelID !== this.channelNum) {
             return;
         }
-        if(this.isDarkened) {
-            this.cancelDarkenSelection(this.selectedX1, this.selectedX2);
-            this.selectedX1 = 0;
-            this.selectedX2 = 0;
-            return;
-        }
         if(this.track.app.selectMode !== 'channel') return;
-        
+        this.mousePressed = true;
+        this.cancelDarkenSelection(this.selectedX1, this.selectedX2);
         this.selectedX1 = window.event.clientX - this.$canvas.getBoundingClientRect().left;
-    }
-    mouseUp = () => {
+    };
+    mouseMove = () => {
+        if(!this.mousePressed) return;
         if(this.track.app.selectedTrackID !== this.track.trackID || this.track.app.selectedChannelID !== this.channelNum) {
-            return;
-        }
-        if(this.isDarkened) {
-            this.isDarkened = false;
             return;
         }
         if(this.track.app.selectMode !== 'channel') return;
         this.isDarkened = true;
-        
+        this.cancelDarkenSelection(this.selectedX1, this.selectedX2);
         this.selectedX2 = window.event.clientX - this.$canvas.getBoundingClientRect().left;
-
-        this.darkenSelection(this.selectedX1, this.selectedX2)
-    }
+        this.darkenSelection(this.selectedX1, this.selectedX2);
+    };
+    mouseUp = () => {
+        if(this.track.app.selectedTrackID !== this.track.trackID || this.track.app.selectedChannelID !== this.channelNum) {
+            return;
+        }
+        if(this.track.app.selectMode !== 'channel') return;
+        this.mousePressed = false;
+        this.cancelDarkenSelection(this.selectedX1, this.selectedX2);
+        this.selectedX2 = window.event.clientX - this.$canvas.getBoundingClientRect().left; //Update the current position X
+        if(this.selectedX2 === this.selectedX1){
+            this.selectedX1 = 0;
+            this.selectedX2 = 0;
+            this.isDarkened = false;
+        }
+        this.darkenSelection(this.selectedX1, this.selectedX2);
+    };
 
     borderChannel = () => {
-        this.canvasCtx.fillStyle = 'rgb(0, 0, 255)'; // draw wave with canvas
-        this.canvasCtx.fillRect(0, -this.$canvas.height/2, this.$canvas.width, 2);
-        this.canvasCtx.fillRect(0, -this.$canvas.height/2, 2, this.$canvas.height);
-        this.canvasCtx.fillRect(this.$canvas.width - 2, -this.$canvas.height/2, 2, this.$canvas.height);
-        this.canvasCtx.fillRect(0, this.$canvas.height/2 - 2, this.$canvas.width, 2);
+        this.track.canvasCtx.fillStyle = 'rgb(0, 0, 255)'; // draw wave with canvas
+        this.track.canvasCtx.fillRect(0, -this.track.$canvas.height/2 + this.top - 2, this.track.$canvas.width, 2);
+        this.track.canvasCtx.fillRect(0, -this.track.$canvas.height/2 + this.top - 2, 2, this.channelHeight + 2);
+        this.track.canvasCtx.fillRect(this.track.$canvas.width - 2, -this.track.$canvas.height/2 + this.top, 2, this.channelHeight + 2);
+        this.track.canvasCtx.fillRect(0, -this.track.$canvas.height/2 + this.top + this.channelHeight, this.track.$canvas.width, 2);
     }
     unborderChannel = () => {
-        this.canvasCtx.fillStyle = 'rgb(200, 200, 200)'; // draw wave with canvas
-        this.canvasCtx.fillRect(0, -this.$canvas.height/2, this.$canvas.width, 2);
-        this.canvasCtx.fillRect(0, -this.$canvas.height/2, 2, this.$canvas.height);
-        this.canvasCtx.fillRect(this.$canvas.width - 2, -this.$canvas.height/2, 2, this.$canvas.height);
-        this.canvasCtx.fillRect(0, this.$canvas.height/2 - 2, this.$canvas.width, 2);
+        this.track.canvasCtx.fillStyle = 'rgb(100, 100, 100)'; // draw wave with canvas
+        this.track.canvasCtx.fillRect(0, -this.track.$canvas.height/2 + this.top - 3, this.track.$canvas.width, 4);
+        this.track.canvasCtx.fillRect(0, -this.track.$canvas.height/2 + this.top - 2, 4, this.channelHeight + 2);
+        this.track.canvasCtx.fillRect(this.track.$canvas.width - 2, -this.track.$canvas.height/2 + this.top, 2, this.channelHeight + 2);
+        this.track.canvasCtx.fillRect(0, -this.track.$canvas.height/2 + this.top + this.channelHeight - 1, this.track.$canvas.width, 4);
     }
-
     darkenSelection = (x1, x2) => {
         let left = (x1 < x2) ? x1 : x2
         let width = (x1 < x2) ? x2 - x1 : x1 - x2
 
         this.canvasCtx.fillStyle = 'rgb(180, 180, 180)'; // draw wave with canvas
         this.canvasCtx.fillRect(left,-this.$canvas.height/2,width,this.$canvas.height);
+        this.isDarkened = true;
 
-        if(this.track.app.selectMode === 'channel' &&
-            this.track.app.selectedTrackID === this.track.trackID && this.track.app.selectedChannelID === this.channelNum) {
-            this.borderChannel();
-        }
+        // if(this.track.app.selectMode === 'channel' &&
+        //     this.track.app.selectedTrackID === this.track.trackID && this.track.app.selectedChannelID === this.channelNum) {
+        //     this.borderChannel();
+        // }
     }
     cancelDarkenSelection = (x1, x2) => {
         if(x1 === x2) return;
@@ -198,11 +215,12 @@ export class AudioChannel{
         
         this.canvasCtx.fillStyle = 'rgb(200, 200, 200)'; // draw wave with canvas
         this.canvasCtx.fillRect(left,-this.$canvas.height/2,width,this.$canvas.height);
+        this.isDarkened = false;
 
-        if(this.track.app.selectMode === 'channel' &&
-            this.track.app.selectedTrackID === this.track.trackID && this.track.app.selectedChannelID === this.channelNum) {
-            this.borderChannel();
-        }
+        // if(this.track.app.selectMode === 'channel' &&
+        //     this.track.app.selectedTrackID === this.track.trackID && this.track.app.selectedChannelID === this.channelNum) {
+        //     this.borderChannel();
+        // }
     }
     copyWave = () => {
         if(this.track.app.selectMode !== 'channel') return;
@@ -213,8 +231,6 @@ export class AudioChannel{
 
         const x1 = (this.selectedX1 < this.selectedX2) ? this.selectedX1 : this.selectedX2
         const x2 = (this.selectedX1 < this.selectedX2) ? this.selectedX2 : this.selectedX1
-        
-        console.log(x1, x2)
 
         const blockSize = this.track.app.blockSize
 
@@ -256,28 +272,67 @@ export class AudioChannel{
         }
         const x =  this.track.app.playbackTime
 
-        let destData, pasteData;
-        destData = this.track.audioSource.buffer.getChannelData(this.channelNum);
-
+        let prevData, pasteData, newData, newBuffer, prevDarken = false;
+        
         const blockSize = this.track.app.blockSize
-        pasteData = this.track.app.copiedChannel;
-        const start = (x * blockSize)
 
-        for(let j = 0; j < pasteData.length; j++){
-            destData[j + start] = pasteData[j];
+        prevData = this.track.audioSource.buffer.getChannelData(this.channelNum);
+        pasteData = this.track.app.copiedChannel;
+
+        if(!this.isDarkened){
+            const start = x * blockSize
+            newData = this.float32ArrayConcat(prevData.slice(0, start), pasteData, prevData.slice(start))
+        }
+        else{
+            prevDarken = true
+            const start = this.selectedX1 * blockSize
+            const end = this.selectedX2 * blockSize
+            newData = this.float32ArrayConcat(prevData.slice(0, start), pasteData, prevData.slice(end))
         }
 
-        this.track.audioSource.buffer.copyToChannel(destData, this.channelNum)
+        newBuffer = this.track.audioContext.createBuffer(this.track.numberOfChannels, 
+            newData.length, this.track.audioSource.buffer.sampleRate)
 
-        this.draw(this.offsetWidth, this.offsetHeight);
-        
+        for(let i = 0; i < this.track.numberOfChannels; i++){
+            if(i === this.channelNum){
+                newBuffer.copyToChannel(newData, this.channelNum)
+            }
+            else{
+                newBuffer.copyToChannel(this.track.audioSource.buffer.getChannelData(i), i)
+            }
+        }
+
+        this.track.audioSource = this.track.audioContext.createBufferSource();
+        this.track.audioSource.buffer = newBuffer;
+    
+        const trackWidth = this.track.audioSource.buffer.duration * this.track.app.samplePerDuration / this.track.app.sampleDensity
+        this.track.draw(trackWidth);
+
         const width = this.track.app.copiedChannelDuration
 
         this.cancelDarkenSelection(this.selectedX1, this.selectedX2)
-        this.selectedX1 = x;
-        this.selectedX2 = x + width;
-        this.isDarkened = true;
-
+        if(!prevDarken){
+            this.selectedX1 = x;
+            this.selectedX2 = x + width;
+            this.isDarkened = true;
+        }
+        else{
+            this.selectedX2 = this.selectedX1 + width;
+        }
         this.darkenSelection(this.selectedX1, this.selectedX2)
+    }
+
+    float32ArrayConcat = (...arrays) => {
+        let totalLength = 0;
+        for (let arr of arrays) {
+            totalLength += arr.length;
+        }
+        let result = new Float32Array(totalLength);
+        let offset = 0;
+        for (let arr of arrays) {
+            result.set(arr, offset);
+            offset += arr.length;
+        }
+        return result;
     }
 }

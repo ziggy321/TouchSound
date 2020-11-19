@@ -282,6 +282,9 @@ export class AudioTrack{
             let track = this.app.audioTracks[i]
             if(this.app.selectedTrackID === track.trackID){
                 track.unborderTrack();
+                track.cancelDarkenSelection(track.selectedX1, track.selectedX2);
+                track.selectedX1 = 0;
+                track.selectedX2 = 0;
                 break;
             }
         }
@@ -428,7 +431,6 @@ export class AudioTrack{
             }
         }
 
-        let temp;
         let prevData, pasteData, newData, newBuffer, prevDarken = false;
         const blockSize = this.app.blockSize
         for(let i = 0; i < this.numberOfChannels; i++){

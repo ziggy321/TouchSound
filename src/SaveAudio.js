@@ -128,7 +128,6 @@ export class SaveAudio{
             channels.push(abuffer.getChannelData(i));
         }
   
-        let cnt = 0, loop = 0;
         while(this.pos < length) {
             for(i = 0; i < numOfChan; i++) {             // interleave channels
                 sample = Math.max(-1, Math.min(1, channels[i][offset])); // clamp

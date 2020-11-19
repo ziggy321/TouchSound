@@ -154,6 +154,7 @@ export class App {
         this.$zoomHorizontalValue.value = this.sampleDensity
         for(var trackID in this.audioTracks){
             let track = this.audioTracks[trackID]
+            if(track.audioSource.buffer === null) return;
             const width = Math.floor(track.audioSource.buffer.duration) 
                     * this.samplePerDuration / this.sampleDensity + this.trackPadding * 2;
             track.draw(width, track.offsetHeight)
@@ -226,19 +227,28 @@ export class App {
     switchSelectMode = () => {
         if(this.selectMode === 'track'){
             if(this.selectedTrackID in this.audioTracks){
-                this.audioTracks[this.selectedTrackID].unborderTrack();
-                if(this.audioTracks[this.selectedTrackID].channels.length > 0){
-                    this.audioTracks[this.selectedTrackID].channels[this.selectedChannelID].borderChannel();
+                let track = this.audioTracks[this.selectedTrackID];
+                track.unborderTrack();
+                track.cancelDarkenSelection(track.selectedX1, track.selectedX2);
+                track.selectedX1 = 0;
+                track.selectedX2 = 0;
+                if(track.channels.length > 0){
+                    track.channels[this.selectedChannelID].borderChannel();
                 }
             }
             this.selectMode = 'channel'
         }
         else if(this.selectMode === 'channel'){
             if(this.selectedTrackID in this.audioTracks){
-                this.audioTracks[this.selectedTrackID].borderTrack();
-                if(this.audioTracks[this.selectedTrackID].channels.length > 0){
-                    this.audioTracks[this.selectedTrackID].channels[this.selectedChannelID].unborderChannel();
+                let track = this.audioTracks[this.selectedTrackID];
+                if(track.channels.length > 0){
+                    let channel = track.channels[this.selectedChannelID];
+                    channel.unborderChannel();
+                    channel.cancelDarkenSelection(channel.selectedX1, channel.selectedX2);
+                    channel.selectedX1 = 0;
+                    channel.selectedX2 = 0;
                 }
+                track.borderTrack();
             }
             this.selectMode = 'track'
         }
