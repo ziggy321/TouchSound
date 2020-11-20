@@ -37,7 +37,6 @@ export class App {
         this.playbackBarSpeed = this.samplePerDuration / this.sampleDensity; // default
 
         this.$trackList = document.querySelector('.trackList')
-        this.createTrack();
 
         this.$zoomHorizontalValue = document.querySelector('.zoomHorizontal')
         this.$zoomHorizontalInButton = document.querySelector('.zoomHorizontalIn')
@@ -75,6 +74,8 @@ export class App {
                 }
             })
         })
+
+        this.createTrack();
 
         this.playAudio = new PlayAudio({
             app: this,
@@ -130,13 +131,13 @@ export class App {
             }
         });
 
-        this.recordAudio = new RecordAudio({
-            
-        })
-
         this.saveAudio = new SaveAudio({
             app: this
         });
+
+        this.recordAudio = new RecordAudio({
+            
+        })
 
         this.audioEffect = new AudioEffect({
             app: this

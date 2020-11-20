@@ -37,9 +37,9 @@ export class AudioTrack{
                 <button class="loadAudio">
                     <img src="img/loadButton.JPG" alt="" class="buttonInTrack">
                 </button>
-                <button class="recordAudio">
+                <!-- <button class="recordAudio">
                     <img src="img/recordButton.JPG" alt="" class="buttonInTrack">
-                </button>
+                </button> -->
                 <button class="muteAudio">
                     <img src="img/muteButton.JPG" alt="" class="buttonInTrack">
                 </button>
@@ -59,8 +59,7 @@ export class AudioTrack{
         this.offsetWidth = 0;
         this.dpr = window.devicePixelRatio || 1;
         this.padding = app.wavePadding;
-        this.draw(this.app.defaultWidth, this.app.defaultHeight)
-
+        this.draw(this.app.defaultWidth, this.app.defaultHeight * this.app.$zoomVerticalValue.value)
         // event
         this.$trackChannelList = this.$trackElement.querySelector('.trackChannelList')
         this.$copyButton = document.querySelector('.copyAudio')
@@ -88,10 +87,6 @@ export class AudioTrack{
             track: this,
             $trackElement: this.$trackElement
         });
-
-        this.recordAudio = new RecordAudio({
-            $trackElement: this.$trackElement
-        })
     }
 
     // methods for canvas
@@ -258,20 +253,6 @@ export class AudioTrack{
     stop = () => {
         this.audioSource.stop(0);
     }
-    ////
-    // drawPlaybackBar = x => {
-    //     if(x >= this.$canvas.width){
-    //         this.$canvas.width *= 2;
-    //     }
-    //     this.$canvas.height = this.app.defaultHeight + this.app.wavePadding * 2
-    //     this.canvasCtx.lineWidth = 1;
-    //     this.canvasCtx.strokeStyle = 'rgb(0, 0, 0)';
-    //     this.canvasCtx.beginPath();
-    //     this.canvasCtx.moveTo(x, 0)
-    //     this.canvasCtx.lineTo(x, this.$canvas.height)
-    //     this.canvasCtx.stroke();
-    // }
-    ////
 
     // methods for editing
     selectAudio = () => {
