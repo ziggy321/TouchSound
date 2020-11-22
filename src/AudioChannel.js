@@ -77,7 +77,7 @@ export class AudioChannel{
         if(w > this.offsetWidth){
             this.offsetWidth = w;
 
-            this.$canvas.width = this.offsetWidth// * this.dpr;
+            this.$canvas.width = this.offsetWidth
 
             this.canvasCtx.clearRect(0, 0, this.$canvas.width, this.$canvas.height);
             this.canvasCtx.fillStyle = 'rgb(200, 200, 200)';
@@ -330,7 +330,12 @@ export class AudioChannel{
             this.isDarkened = true;
         }
         else{
-            this.selectedX2 = this.selectedX1 + width;
+            if(this.selectedX1 < this.selectedX2){
+                this.selectedX2 = this.selectedX1 + width;
+            }
+            else{
+                this.selectedX1 = this.selectedX2 + width;
+            }
         }
         this.darkenSelection(this.selectedX1, this.selectedX2)
     }
