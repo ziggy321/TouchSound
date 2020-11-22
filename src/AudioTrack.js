@@ -1,6 +1,7 @@
 import { LoadAudio } from "./LoadAudio.js";
 import { RecordAudio } from "./RecordAudio.js";
 import { AudioChannel } from "./AudioChannel.js";
+import { PlayAudio } from "./PlayAudio.js";
 
 export class AudioTrack{
     trackID = 0;
@@ -35,16 +36,13 @@ export class AudioTrack{
             <div class='trackInterface'>
                 <span style='display: none'>${id}</span>
                 <button class="loadAudio">
-                    <img src="img/loadButton.JPG" alt="" class="buttonInTrack">
+                    <span>Load</span>
                 </button>
-                <!-- <button class="recordAudio">
-                    <img src="img/recordButton.JPG" alt="" class="buttonInTrack">
-                </button> -->
                 <button class="muteAudio">
-                    <img src="img/muteButton.JPG" alt="" class="buttonInTrack">
+                    <span>Mute</span>
                 </button>
                 <button class="closeAudio">
-                    <img src="img/closeButton.JPG" alt="" class="buttonInTrack">
+                    <span>X</span>
                 </button>
             </div>
             <div class='trackChannelList'></div>
@@ -77,13 +75,17 @@ export class AudioTrack{
         })
         this.$pasteButton.addEventListener('click', this.pasteWave.bind(this))
         this.$deleteButton.addEventListener('click', this.deleteWave.bind(this))
-        this.$trackElement.querySelector('.muteAudio').addEventListener('click', this.mute);
         
         // initialize audio context
         // this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
         this.initAudio();
 
         this.loadAudio = new LoadAudio({
+            track: this,
+            $trackElement: this.$trackElement
+        });
+
+        this.playAudio = new PlayAudio({
             track: this,
             $trackElement: this.$trackElement
         });
@@ -129,6 +131,10 @@ export class AudioTrack{
             
             channel.draw(this.offsetWidth - this.app.trackPadding * 2, 
                 (this.offsetHeight - this.app.trackPadding * 2 - this.numberOfChannels - 1) / this.numberOfChannels)
+        }
+        
+        if(this.isDarkened){
+            this.darkenSelection(this.selectedX1, this.selectedX2);
         }
     }
 
@@ -280,8 +286,9 @@ export class AudioTrack{
         }
         if(this.app.selectMode !== 'track') return;
         this.mousePressed = true;
+        this.isDarkened = false;
         this.cancelDarkenSelection(this.selectedX1, this.selectedX2);
-        this.selectedX1 = window.event.clientX - this.$canvas.getBoundingClientRect().left;
+        this.selectedX1 = Math.round(window.event.clientX - this.$canvas.getBoundingClientRect().left);
     };
     mouseMove = () => {
         if(!this.mousePressed) return;
@@ -291,7 +298,7 @@ export class AudioTrack{
         if(this.app.selectMode !== 'track') return;
         this.isDarkened = true;
         this.cancelDarkenSelection(this.selectedX1, this.selectedX2);
-        this.selectedX2 = window.event.clientX - this.$canvas.getBoundingClientRect().left;
+        this.selectedX2 = Math.round(window.event.clientX - this.$canvas.getBoundingClientRect().left);
         this.darkenSelection(this.selectedX1, this.selectedX2);
     };
     mouseUp = () => {
@@ -301,13 +308,15 @@ export class AudioTrack{
         if(this.app.selectMode !== 'track') return;
         this.mousePressed = false;
         this.cancelDarkenSelection(this.selectedX1, this.selectedX2);
-        this.selectedX2 = window.event.clientX - this.$canvas.getBoundingClientRect().left; //Update the current position X
+        this.selectedX2 = Math.round(window.event.clientX - this.$canvas.getBoundingClientRect().left); //Update the current position X
         if(this.selectedX2 === this.selectedX1){
             this.selectedX1 = 0;
             this.selectedX2 = 0;
             this.isDarkened = false;
         }
-        this.darkenSelection(this.selectedX1, this.selectedX2);
+        else{
+            this.darkenSelection(this.selectedX1, this.selectedX2);
+        }
     };    
     borderTrack = () => {
         this.canvasCtx.fillStyle = 'rgb(255, 0, 0)'; // draw wave with canvas
@@ -324,6 +333,7 @@ export class AudioTrack{
         this.canvasCtx.fillRect(0, this.$canvas.height/2 - 2, this.$canvas.width, 2);
     }
     darkenSelection = (x1, x2) => {
+        if(x1 === x2) return;
         this.isDarkened = true;
         let left = (x1 < x2) ? x1 : x2
         let width = (x1 < x2) ? x2 - x1 : x1 - x2
@@ -355,8 +365,10 @@ export class AudioTrack{
         }
         if(this.selectedX1 === this.selectedX2) return;
 
-        const x1 = (this.selectedX1 < this.selectedX2) ? this.selectedX1 : this.selectedX2
-        const x2 = (this.selectedX1 < this.selectedX2) ? this.selectedX2 : this.selectedX1
+        console.log(Math.abs(this.selectedX2 - this.selectedX1))
+
+        const x1 = Math.round(((this.selectedX1 < this.selectedX2) ? this.selectedX1 : this.selectedX2) * this.app.sampleDensity);
+        const x2 = Math.round(((this.selectedX1 < this.selectedX2) ? this.selectedX2 : this.selectedX1) * this.app.sampleDensity);
 
         const blockSize = this.app.blockSize
 
@@ -379,8 +391,8 @@ export class AudioTrack{
         }
         if(this.selectedX1 === this.selectedX2) return;
 
-        const x1 = (this.selectedX1 < this.selectedX2) ? this.selectedX1 : this.selectedX2
-        const x2 = (this.selectedX1 < this.selectedX2) ? this.selectedX2 : this.selectedX1
+        const x1 = Math.round(((this.selectedX1 < this.selectedX2) ? this.selectedX1 : this.selectedX2) * this.app.sampleDensity);
+        const x2 = Math.round(((this.selectedX1 < this.selectedX2) ? this.selectedX2 : this.selectedX1) * this.app.sampleDensity);
 
         const blockSize = this.app.blockSize
 
@@ -396,7 +408,9 @@ export class AudioTrack{
         this.darkenSelection(this.selectedX1, this.selectedX2)
     }
     pasteWave = () => {
-        const x = this.app.playbackTime
+        let playbackBarSpeed = this.app.samplePerDuration / this.app.sampleDensity;
+        const x = Math.round(this.app.playbackTime * playbackBarSpeed);
+        
         if(this.app.selectMode === 'channel') return;
         if(this.app.selectedTrackID !== this.trackID || !this.app.copiedBuffer) {
             return;
@@ -419,13 +433,15 @@ export class AudioTrack{
             pasteData = this.app.copiedBuffer.getChannelData(i);
 
             if(!this.isDarkened){
-                const start = x * blockSize
+                const start = x * blockSize / this.app.sampleDensity;
                 newData = this.float32ArrayConcat(prevData.slice(0, start), pasteData, prevData.slice(start))
             }
             else{
                 prevDarken = true
-                const start = this.selectedX1 * blockSize
-                const end = this.selectedX2 * blockSize
+                const x1 = Math.round(((this.selectedX1 < this.selectedX2) ? this.selectedX1 : this.selectedX2) * this.app.sampleDensity)
+                const x2 = Math.round(((this.selectedX1 < this.selectedX2) ? this.selectedX2 : this.selectedX1) * this.app.sampleDensity)
+                const start = x1 * blockSize
+                const end = x2 * blockSize
                 newData = this.float32ArrayConcat(prevData.slice(0, start), pasteData, prevData.slice(end))
             }
 
@@ -440,8 +456,10 @@ export class AudioTrack{
         this.audioSource.buffer = newBuffer;
 
         const trackWidth = this.audioSource.buffer.duration * this.app.samplePerDuration / this.app.sampleDensity
+            + this.app.trackPadding * 2 + 1;
         this.draw(trackWidth, this.offsetHeight);
         
+        console.log(this.app.sampleDensity)
         const width = this.app.copiedBuffer.duration * this.app.samplePerDuration / this.app.sampleDensity
         
         this.cancelDarkenSelection(this.selectedX1, this.selectedX2)

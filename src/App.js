@@ -1,12 +1,11 @@
-import { PlayAudio } from "./PlayAudio.js";
 import { RecordAudio } from "./RecordAudio.js";
 import { SaveAudio } from "./SaveAudio.js";
 import { AudioTrack } from "./AudioTrack.js";
 import { AudioEffect } from "./AudioEffect.js";
-// import { ConvertToFile } from "./ConvertToFile.js";
 
 export class App {
     audioTracks = {}
+    timer = {}
     trackCreationCount = 0;
 
     isPlaying = false;
@@ -38,6 +37,10 @@ export class App {
 
         this.$trackList = document.querySelector('.trackList')
 
+        const $playAudio = document.querySelector('.playAudio');
+        const $pauseAudio = document.querySelector('.pauseAudio');
+        const $stopAudio = document.querySelector('.stopAudio');
+
         this.$zoomHorizontalValue = document.querySelector('.zoomHorizontal')
         this.$zoomHorizontalInButton = document.querySelector('.zoomHorizontalIn')
         this.$zoomHorizontalOutButton = document.querySelector('.zoomHorizontalOut')
@@ -47,6 +50,10 @@ export class App {
         this.$createTrackButton = document.querySelector('.createTrack')
         this.$deleteTrackButton = document.querySelector('.deleteTrack')
         this.$selectMode = document.querySelector('.selectMode')
+        
+        $playAudio.addEventListener('click', this.playAudio);
+        $pauseAudio.addEventListener('click', this.pauseAudio);
+        $stopAudio.addEventListener('click', this.stopAudio);
 
         this.$createTrackButton.addEventListener('click', this.createTrack.bind(this));
         this.$selectMode.addEventListener('change', this.switchSelectMode.bind(this))
@@ -77,66 +84,12 @@ export class App {
 
         this.createTrack();
 
-        this.playAudio = new PlayAudio({
-            app: this,
-            playAudio: () => {
-                if(this.isPlaying) return;
-                this.isPlaying = true;
-                console.log('play start')
-
-                let initial = Object.keys(this.audioTracks)[0];
-                this.startTime = this.audioTracks[initial].audioContext.currentTime
-                this.timer = setInterval(() => {
-                    this.playbackBarSpeed = this.audioTracks[initial].rate * this.samplePerDuration / this.sampleDensity;
-                    // this.playbackTime += (this.playbackBarSpeed / 1)
-                    //     * Math.round(this.audioTracks[initial].audioSource.playbackRate.value * 10) / 10
-
-                    this.playbackTime = this.playbackBarSpeed * (this.audioTracks[initial].audioContext.currentTime - this.startTime)
-                    this.playAudio.drawPlaybackBar(this.playbackTime);
-                }, 1);
-                for(var i in this.audioTracks){
-                    let currentTrack = this.audioTracks[i];
-                    currentTrack.play(this.playbackTime);
-                }
-            },
-            pauseAudio: () => {
-                console.log('paused')
-
-                this.isPlaying = false;
-                let initial = Object.keys(this.audioTracks)[0];
-                this.playbackBarSpeed = this.audioTracks[initial].rate * this.samplePerDuration / this.sampleDensity;
-                this.playbackTime = this.playbackBarSpeed * (this.audioTracks[initial].audioContext.currentTime - this.startTime)
-                this.playAudio.drawPlaybackBar(this.playbackTime);
-                if(this.timer != null) {
-                    clearInterval(this.timer);
-                }
-                for(var i in this.audioTracks){
-                    let currentTrack = this.audioTracks[i];
-                    currentTrack.stop();
-                }
-            },
-            stopAudio: () => {
-                console.log('stopped')
-                
-                this.isPlaying = false;
-                this.playbackTime = 0
-                this.playAudio.drawPlaybackBar(this.playbackTime);
-                if(this.timer != null) {
-                    clearInterval(this.timer);
-                }
-                for(var i in this.audioTracks){
-                    let currentTrack = this.audioTracks[i];
-                    currentTrack.stop();
-                }
-            }
-        });
-
         this.saveAudio = new SaveAudio({
             app: this
         });
 
         this.recordAudio = new RecordAudio({
-            
+
         })
 
         this.audioEffect = new AudioEffect({
@@ -151,6 +104,57 @@ export class App {
         // 1 duration 당 data의 길이(오디오 데이터 배열의 길이)는 48000이다.
         // 이를 samplePerDuration으로 나누면 blockSize(샘플 1개의 길이)가 된다.
     }
+
+    playAudio = () => {
+        if(this.isPlaying) return;
+        console.log('play start')
+        this.isPlaying = true;
+
+        let initial = Object.keys(this.audioTracks)[0];
+        this.startTime = this.audioTracks[initial].audioContext.currentTime - this.playbackTime;
+        for(var i in this.audioTracks){
+            let currentTrack = this.audioTracks[i];
+            this.timer[i] = setInterval(() => {
+                let playbackBarSpeed = this.samplePerDuration / this.sampleDensity;
+                this.playbackTime = (this.audioTracks[initial].audioContext.currentTime - this.startTime)
+                currentTrack.playAudio.drawPlaybackBar(this.playbackTime * playbackBarSpeed);
+            }, 1);
+
+            currentTrack.play(this.playbackTime);
+        }
+    }
+    pauseAudio = () => {
+        console.log('paused')
+        this.isPlaying = false;
+        
+        let initial = Object.keys(this.audioTracks)[0];
+        for(var i in this.audioTracks){
+            let currentTrack = this.audioTracks[i];
+            let playbackBarSpeed = (this.samplePerDuration / this.sampleDensity)
+            this.playbackTime = (this.audioTracks[initial].audioContext.currentTime - this.startTime)
+            currentTrack.playAudio.drawPlaybackBar(this.playbackTime * playbackBarSpeed);
+            if(this.timer[i] != null) {
+                clearInterval(this.timer[i]);
+            }
+
+            currentTrack.stop();
+        }
+    }
+    stopAudio = () => {
+        console.log('stopped')
+        this.isPlaying = false;
+
+        this.playbackTime = 0
+        for(var i in this.audioTracks){
+            let currentTrack = this.audioTracks[i];
+            currentTrack.playAudio.drawPlaybackBar(0);
+            if(this.timer[i] != null) {
+                clearInterval(this.timer[i]);
+            }
+            currentTrack.stop();
+        }
+    }
+
     zoomHorizontalChange = () => {
         this.$zoomHorizontalValue.value = this.sampleDensity
         for(var trackID in this.audioTracks){
@@ -215,14 +219,14 @@ export class App {
             id: this.trackCreationCount
         })
         this.audioTracks[track.trackID] = track;
+        let playbackBarSpeed = (this.samplePerDuration / this.sampleDensity)
+        track.playAudio.drawPlaybackBar(this.playbackTime * playbackBarSpeed);
         this.trackCreationCount += 1;
-        // this.playAudio.$canvas.height = this.playAudio.$canvas.height + (this.defaultHeight + this.wavePadding * 2)
     }
     deleteTrack = $item => {
         const id = $item.parentNode.querySelector('span').innerText;
         delete this.audioTracks[id];
         $item.parentNode.parentNode.remove();
-        // this.playAudio.$canvas.height = this.playAudio.$canvas.height - (this.defaultHeight + this.wavePadding * 2)
     }
 
     switchSelectMode = () => {

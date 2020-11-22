@@ -23,6 +23,7 @@ export class LoadAudio{
             file.arrayBuffer()
             .then(buffer => this.track.audioContext.decodeAudioData(buffer))
             .then(audioBuffer => {
+                console.log(audioBuffer.sampleRate, audioBuffer.length / audioBuffer.duration)
                 this.track.loadBuffer.call(this.track, audioBuffer)
                 const width = Math.floor(this.track.audioSource.buffer.duration)
                     * this.track.app.samplePerDuration / this.track.app.sampleDensity + this.track.app.trackPadding * 2 + 1;
