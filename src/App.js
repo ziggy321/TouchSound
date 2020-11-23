@@ -108,16 +108,7 @@ export class App {
         this.isPlaying = true;
 
         let initial = Object.keys(this.audioTracks)[0];
-        this.startTime = this.audioTracks[initial].audioContext.currentTime - this.playbackTime
-                / this.audioTracks[initial].audioSource.playbackRate.value;
-        for(var i in this.audioTracks){
-            let currentTrack = this.audioTracks[i];
-            let newStartTime = this.audioTracks[initial].audioContext.currentTime - this.playbackTime
-                / currentTrack.audioSource.playbackRate.value;
-            if(newStartTime > this.startTime){
-                this.startTime = newStartTime;
-            }
-        }
+        this.startTime = this.audioTracks[initial].audioContext.currentTime - this.playbackTime;
         for(var i in this.audioTracks){
             let currentTrack = this.audioTracks[i];
             this.timer[i] = setInterval(() => {
@@ -127,7 +118,8 @@ export class App {
                 this.$currentTime.innerText = new Date(this.playbackTime * 1000).toISOString().substr(11, 8)
             }, 1);
 
-            currentTrack.play(this.playbackTime);
+            if(currentTrack.numberOfChannels === 0) continue;
+            currentTrack.play(this.playbackTime * currentTrack.audioSource.playbackRate.value);
         }
     }
     pauseAudio = () => {
