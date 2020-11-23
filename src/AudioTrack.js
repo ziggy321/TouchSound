@@ -195,11 +195,11 @@ export class AudioTrack{
     }
     play = startAt => {
         this.isPlaying = true;
-        if(this.audioSource.loop){
-            if(startAt < this.audioSource.loopStart || startAt > this.audioSource.loopEnd){
-                startAt = this.audioSource.loopStart
-            }
-        }
+        // if(this.audioSource.loop){
+        //     if(startAt < this.audioSource.loopStart || startAt > this.audioSource.loopEnd){
+        //         startAt = this.audioSource.loopStart
+        //     }
+        // }
         let usedSource = this.audioSource;
         this.audioSource = this.audioContext.createBufferSource();
         this.audioSource.buffer = usedSource.buffer
