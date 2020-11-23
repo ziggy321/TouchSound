@@ -1,5 +1,5 @@
 export class AudioWave{
-    waveMax = 0.3;
+    waveMax = 0.3
 
     constructor({channel, audioData, channelNum}){
         this.channel = channel;
@@ -23,7 +23,7 @@ export class AudioWave{
 
     filterData = () => {
         const rawData = this.audioData
-        const blockSize = this.channel.track.app.blockSize
+        const blockSize = Math.round(this.channel.track.blockSize * this.channel.track.audioSource.playbackRate.value);
         const samples = Math.floor(rawData.length / blockSize);
 
         const filteredData = [];
@@ -33,7 +33,7 @@ export class AudioWave{
             for (let j = 0; j < blockSize; j++) {
                 sum = sum + Math.abs(rawData[blockStart + j])
             }
-            // sum *= this.channel.track.gain.gain.value;
+            sum *= this.channel.track.gain.gain.value;
             filteredData.push(sum / blockSize);
         }
         return filteredData;
@@ -62,6 +62,12 @@ export class AudioWave{
         let normalizedData = this.normalizeData(filteredData);
 
         // Set up the canvas
+        this.$canvas.style = `
+            z-index: 2;
+            position: absolute;
+            left: 2px;
+            top: ${2 + (this.channel.track.$canvas.height / this.channel.track.numberOfChannels - 1) * this.channelNum}px;
+        `;
         this.offsetWidth = normalizedData.length / this.channel.track.app.sampleDensity;
         this.offsetHeight = this.channel.track.offsetHeight / this.channel.track.numberOfChannels - 2;
         this.$canvas.width = this.offsetWidth
@@ -76,7 +82,6 @@ export class AudioWave{
             let height = normalizedData[i] * (this.offsetHeight / 2)
             this.drawLineSegment(this.canvasCtx, x, height, width, (i + 1) % 2);
         }
-        console.log('drawn')
     };
 
 }

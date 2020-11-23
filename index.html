@@ -20,30 +20,42 @@
     </head>
     <body>
         <div style='display: flex'>
-            <div class="downloadAudio">
-                <button class="saveAudio">
-                    <img src="img/saveButton.JPG" alt="" class="button">
-                </button>
-            </div>
+            <button class="saveAudio">
+                <span>Save</span>
+            </button>
             <button class="recordAudio">
-                <img src="img/recordButton.JPG" alt="" class="button">
+                <span>Record</span>
             </button>
             <button class="playAudio">
-                <img src="img/playButton.JPG" alt="" class="button">
+                <span>Play</span>
             </button>
             <button class="pauseAudio">
-                <img src="img/pauseButton.JPG" alt="" class="button">
+                <span>Pause</span>
             </button>
             <button class="stopAudio">
-                <img src="img/stopButton.JPG" alt="" class="button">
+                <span>Stop</span>
             </button>
+
+            <div class='adjustBox'>
+                <label class='adjustLabel'>Time</label>
+                <span class='currentTime'>00:00:00</span>
+            </div>
+
+            <!-- <div class='adjustBox'>
+                <button class='adjustLabel'>Loop</button>
+                <input class='loopStart valueAdjust' type="text" value="00:00:00" />
+                <input class='loopEnd valueAdjust' type="text" value="00:00:00" />
+            </div> -->
 
             <div class='adjustBox'>
                 <label class='adjustLabel'>Zoom</label>
                 <div class='inputUnit'>
-                    <button class='zoomIn'>in</button>
-                    <input class='zoom valueAdjust' type="text" value="1" />
-                    <button class='zoomOut'>out</button>
+                    <button class='zoomHorizontalIn'>◀▶</button>
+                    <input class='zoomHorizontal valueAdjust' type="text" value="1" />
+                    <button class='zoomHorizontalOut'>▶◀</button>
+                    <button class='zoomVerticalIn'>▼▲</button>
+                    <input class='zoomVertical valueAdjust' type="text" value="1" />
+                    <button class='zoomVerticalOut'>▲▼</button>
                 </div>
             </div>
 
@@ -56,16 +68,16 @@
             </div>
             
             <button class="copyAudio">
-                <img src="img/copyButton.JPG" alt="" class="button">
+                <span>Copy</span>
             </button>
             <button class="cutAudio">
-                <img src="img/cutButton.JPG" alt="" class="button">
+                <span>Cut</span>
             </button>
             <button class="pasteAudio">
-                <img src="img/pasteButton.JPG" alt="" class="button">
+                <span>Paste</span>
             </button>
             <button class="deleteAudio">
-                <img src="img/deleteButton.JPG" alt="" class="button">
+                <span>Delete</span>
             </button>
 
             <div class='adjustBox'>
@@ -78,7 +90,7 @@
             </div>
 
             <div class='adjustBox'>
-                <label class='adjustLabel'>Speed</label>
+                <label class='adjustLabel'>Speed per track</label>
                 <div class='inputUnit'>
                     <button class='speedUp'>>>></button>
                     <input class='speed valueAdjust' type="text" value="1" />
@@ -90,7 +102,7 @@
         <div class="trackList"></div>
 
         <button class="createTrack">
-            <img src="img/createTrackButton.JPG" alt="" class="button">
+            <span>+</span>
         </button>
       
         <script src="main.js" type="module"></script>
