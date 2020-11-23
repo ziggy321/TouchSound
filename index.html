@@ -37,14 +37,25 @@
             </button>
 
             <div class='adjustBox'>
+                <label class='adjustLabel'>Time</label>
+                <span class='currentTime'>00:00:00</span>
+            </div>
+
+            <!-- <div class='adjustBox'>
+                <button class='adjustLabel'>Loop</button>
+                <input class='loopStart valueAdjust' type="text" value="00:00:00" />
+                <input class='loopEnd valueAdjust' type="text" value="00:00:00" />
+            </div> -->
+
+            <div class='adjustBox'>
                 <label class='adjustLabel'>Zoom</label>
                 <div class='inputUnit'>
                     <button class='zoomHorizontalIn'>◀▶</button>
                     <input class='zoomHorizontal valueAdjust' type="text" value="1" />
                     <button class='zoomHorizontalOut'>▶◀</button>
-                    <button class='zoomVerticalIn'>▲▼</button>
+                    <button class='zoomVerticalIn'>▼▲</button>
                     <input class='zoomVertical valueAdjust' type="text" value="1" />
-                    <button class='zoomVerticalOut'>▼▲</button>
+                    <button class='zoomVerticalOut'>▲▼</button>
                 </div>
             </div>
 
@@ -79,7 +90,7 @@
             </div>
 
             <div class='adjustBox'>
-                <label class='adjustLabel'>Speed</label>
+                <label class='adjustLabel'>Speed per track</label>
                 <div class='inputUnit'>
                     <button class='speedUp'>>>></button>
                     <input class='speed valueAdjust' type="text" value="1" />

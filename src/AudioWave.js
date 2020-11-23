@@ -23,7 +23,7 @@ export class AudioWave{
 
     filterData = () => {
         const rawData = this.audioData
-        const blockSize = this.channel.track.app.blockSize
+        const blockSize = Math.round(this.channel.track.blockSize * this.channel.track.audioSource.playbackRate.value);
         const samples = Math.floor(rawData.length / blockSize);
 
         const filteredData = [];
@@ -33,7 +33,7 @@ export class AudioWave{
             for (let j = 0; j < blockSize; j++) {
                 sum = sum + Math.abs(rawData[blockStart + j])
             }
-            // sum *= this.channel.track.gain.gain.value;
+            sum *= this.channel.track.gain.gain.value;
             filteredData.push(sum / blockSize);
         }
         return filteredData;

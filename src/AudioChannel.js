@@ -179,6 +179,14 @@ export class AudioChannel{
         this.cancelDarkenSelection(this.selectedX1, this.selectedX2);
         this.selectedX2 = Math.round(window.event.clientX - this.$canvas.getBoundingClientRect().left); //Update the current position X
         if(this.selectedX2 === this.selectedX1){
+            for(var i in this.track.app.audioTracks){
+                let track = this.track.app.audioTracks[i];
+                track.playAudio.drawPlaybackBar(this.selectedX2);
+                let playbackBarSpeed = (track.app.samplePerDuration / track.app.sampleDensity);
+                track.app.playbackTime = this.selectedX2 / playbackBarSpeed;
+                track.app.$currentTime.innerText = new Date(track.app.playbackTime * 1000).toISOString().substr(11, 8);
+            }
+
             this.selectedX1 = 0;
             this.selectedX2 = 0;
             this.isDarkened = false;
@@ -240,7 +248,7 @@ export class AudioChannel{
         const x1 = ((this.selectedX1 < this.selectedX2) ? this.selectedX1 : this.selectedX2) * this.track.app.sampleDensity;
         const x2 = ((this.selectedX1 < this.selectedX2) ? this.selectedX2 : this.selectedX1) * this.track.app.sampleDensity;
 
-        const blockSize = this.track.app.blockSize
+        const blockSize = this.track.blockSize
 
         let srcData = this.track.audioSource.buffer.getChannelData(this.channelNum);
         this.track.app.copiedChannel = new Float32Array((x2 - x1) * blockSize)
@@ -259,7 +267,7 @@ export class AudioChannel{
         const x1 = ((this.selectedX1 < this.selectedX2) ? this.selectedX1 : this.selectedX2) * this.track.app.sampleDensity;
         const x2 = ((this.selectedX1 < this.selectedX2) ? this.selectedX2 : this.selectedX1) * this.track.app.sampleDensity;
 
-        const blockSize = this.track.app.blockSize
+        const blockSize = this.track.blockSize
 
         let srcData = this.track.audioSource.buffer.getChannelData(this.channelNum);
         for(let j = (x1 * blockSize); j < (x2 * blockSize); j++){
@@ -284,7 +292,7 @@ export class AudioChannel{
 
         let prevData, pasteData, newData, newBuffer, prevDarken = false;
         
-        const blockSize = this.track.app.blockSize
+        const blockSize = this.track.blockSize
 
         prevData = this.track.audioSource.buffer.getChannelData(this.channelNum);
         pasteData = this.track.app.copiedChannel;

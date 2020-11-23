@@ -9,6 +9,8 @@ export class App {
     trackCreationCount = 0;
 
     isPlaying = false;
+    isLoop = false;
+    isDraggingPlaybackBar = false;
 
     startTime = 0; // 현재 재생바가 0에서 언제부터 움직이기 시작했는지 결정
     playbackTime = 0; // 현재 재생바의 위치를 결정
@@ -32,14 +34,17 @@ export class App {
     defaultHeight = 151;
 
     constructor(){
-        this.setBlockSize();
-        this.playbackBarSpeed = this.samplePerDuration / this.sampleDensity; // default
+        // this.playbackBarSpeed = this.samplePerDuration / this.sampleDensity; // default
 
         this.$trackList = document.querySelector('.trackList')
 
         const $playAudio = document.querySelector('.playAudio');
         const $pauseAudio = document.querySelector('.pauseAudio');
         const $stopAudio = document.querySelector('.stopAudio');
+
+        this.$currentTime = document.querySelector('.currentTime');
+        this.$loopStart = document.querySelector('.loopStart');
+        this.$loopEnd = document.querySelector('.loopEnd');
 
         this.$zoomHorizontalValue = document.querySelector('.zoomHorizontal')
         this.$zoomHorizontalInButton = document.querySelector('.zoomHorizontalIn')
@@ -97,14 +102,6 @@ export class App {
         })
     }
 
-    setBlockSize = () => {
-        const dataLengthPerDuration = 48000 // literally
-        this.blockSize = Math.floor(dataLengthPerDuration / this.samplePerDuration);
-        // samplePerDuration은 1 duration당 몇 개의 sample을 생성할지 결정한다.
-        // 1 duration 당 data의 길이(오디오 데이터 배열의 길이)는 48000이다.
-        // 이를 samplePerDuration으로 나누면 blockSize(샘플 1개의 길이)가 된다.
-    }
-
     playAudio = () => {
         if(this.isPlaying) return;
         console.log('play start')
@@ -118,6 +115,7 @@ export class App {
                 let playbackBarSpeed = this.samplePerDuration / this.sampleDensity;
                 this.playbackTime = (this.audioTracks[initial].audioContext.currentTime - this.startTime)
                 currentTrack.playAudio.drawPlaybackBar(this.playbackTime * playbackBarSpeed);
+                this.$currentTime.innerText = new Date(this.playbackTime * 1000).toISOString().substr(11, 8)
             }, 1);
 
             currentTrack.play(this.playbackTime);
@@ -130,14 +128,16 @@ export class App {
         let initial = Object.keys(this.audioTracks)[0];
         for(var i in this.audioTracks){
             let currentTrack = this.audioTracks[i];
-            let playbackBarSpeed = (this.samplePerDuration / this.sampleDensity)
+            let playbackBarSpeed = this.samplePerDuration / this.sampleDensity
             this.playbackTime = (this.audioTracks[initial].audioContext.currentTime - this.startTime)
             currentTrack.playAudio.drawPlaybackBar(this.playbackTime * playbackBarSpeed);
+            this.$currentTime.innerText = new Date(this.playbackTime * 1000).toISOString().substr(11, 8)
             if(this.timer[i] != null) {
                 clearInterval(this.timer[i]);
             }
-
-            currentTrack.stop();
+            if(currentTrack.isPlaying){
+                currentTrack.stop();
+            }
         }
     }
     stopAudio = () => {
@@ -145,23 +145,47 @@ export class App {
         this.isPlaying = false;
 
         this.playbackTime = 0
+        this.$currentTime.innerText = new Date(this.playbackTime * 1000).toISOString().substr(11, 8)
         for(var i in this.audioTracks){
             let currentTrack = this.audioTracks[i];
             currentTrack.playAudio.drawPlaybackBar(0);
             if(this.timer[i] != null) {
                 clearInterval(this.timer[i]);
             }
-            currentTrack.stop();
+            if(currentTrack.isPlaying){
+                currentTrack.stop();
+            }
         }
     }
+    // setLoop = () => {
+    //     if(this.isLoop){
+    //         for(var i in this.audioTracks){
+    //             let currentTrack = this.audioTracks[i];
+    //             currentTrack.audioSource.loop = false;
+    //         }
+    //     }
+    //     else{
+    //         for(var i in this.audioTracks){
+    //             let currentTrack = this.audioTracks[i];
+    //             currentTrack.audioSource.loop = true;
+    //             currentTrack.audioSource.loopStart = this.$loopStart.value.toSeconds();
+    //             currentTrack.audioSource.loopEnd = this.$loopEnd.value.toSeconds();
+    //         }
+    //     }
+    // }
 
     zoomHorizontalChange = () => {
         this.$zoomHorizontalValue.value = this.sampleDensity
+        
+        let playbackBarSpeed = this.samplePerDuration / this.sampleDensity
+        this.$currentTime.innerText = new Date(this.playbackTime * 1000).toISOString().substr(11, 8)
+
         for(var trackID in this.audioTracks){
             let track = this.audioTracks[trackID]
+            track.playAudio.drawPlaybackBar(this.playbackTime * playbackBarSpeed);
             if(track.audioSource.buffer === null) return;
             const width = Math.floor(track.audioSource.buffer.duration) 
-                    * this.samplePerDuration / this.sampleDensity + this.trackPadding * 2;
+                    * this.samplePerDuration / this.sampleDensity + this.trackPadding * 2 + 1;
             track.draw(width, track.offsetHeight)
         }
     }
@@ -191,6 +215,12 @@ export class App {
             let track = this.audioTracks[trackID]
             const height = this.defaultHeight * this.$zoomVerticalValue.value
             track.draw(track.offsetWidth, height)
+
+            if(!this.isPlaying){
+                let playbackBarSpeed = this.samplePerDuration / this.sampleDensity;
+                track.playAudio.drawPlaybackBar(this.playbackTime * playbackBarSpeed);
+                this.$currentTime.innerText = new Date(this.playbackTime * 1000).toISOString().substr(11, 8)
+            }
         }
     }
     setZoomVertical = () => {
@@ -219,9 +249,19 @@ export class App {
             id: this.trackCreationCount
         })
         this.audioTracks[track.trackID] = track;
-        let playbackBarSpeed = (this.samplePerDuration / this.sampleDensity)
+        let playbackBarSpeed = this.samplePerDuration / this.sampleDensity
         track.playAudio.drawPlaybackBar(this.playbackTime * playbackBarSpeed);
         this.trackCreationCount += 1;
+
+        let initial = Object.keys(this.audioTracks)[0];
+        if(this.isPlaying){
+            this.timer[track.trackID] = setInterval(() => {
+                let playbackBarSpeed = this.samplePerDuration / this.sampleDensity;
+                this.playbackTime = (this.audioTracks[initial].audioContext.currentTime - this.startTime)
+                track.playAudio.drawPlaybackBar(this.playbackTime * playbackBarSpeed);
+                this.$currentTime.innerText = new Date(this.playbackTime * 1000).toISOString().substr(11, 8)
+            }, 1);
+        }
     }
     deleteTrack = $item => {
         const id = $item.parentNode.querySelector('span').innerText;

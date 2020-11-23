@@ -1,12 +1,10 @@
 import { LoadAudio } from "./LoadAudio.js";
-import { RecordAudio } from "./RecordAudio.js";
 import { AudioChannel } from "./AudioChannel.js";
 import { PlayAudio } from "./PlayAudio.js";
 
 export class AudioTrack{
     trackID = 0;
 
-    audioNodes = {};
     audioCurrent = null; // 현재까지 편집한 오디오 데이터가 담긴 노드
     channels = []; // AudioChannel의 배열
     numberOfChannels = 0; // 음원 로드/녹음에 따라 채널 수가 조정됨
@@ -26,7 +24,12 @@ export class AudioTrack{
     constructor({app, id}){
         this.app = app;
         this.trackID = id;
-        this.waveColor = "#" + Math.round(Math.random() * 0xffffff).toString(16);
+
+        let color;
+        do{
+            color = Math.round(Math.random() * 0xffffff);
+            this.waveColor = "#" + color.toString(16);
+        }while(color > 0xaaaaaa);
 
         // DOM Components
         const $trackList = document.querySelector('.trackList')
@@ -134,6 +137,13 @@ export class AudioTrack{
         }
     }
 
+    setBlockSize = sampleRate => {
+        this.blockSize = Math.floor(sampleRate / this.app.samplePerDuration);
+        // samplePerDuration은 1 duration당 몇 개의 sample을 생성할지 결정한다.
+        // 1 duration 당 data의 길이(오디오 데이터 배열의 길이)는 48000이다.
+        // 이를 samplePerDuration으로 나누면 blockSize(샘플 1개의 길이)가 된다.
+    }
+
     // methods for audio
     initAudio = () => {
         // setup the audioContext
@@ -152,21 +162,12 @@ export class AudioTrack{
         // this.audioConvolver.connect(this.masterGain);
         // this.masterGain.connect(this.masterCompression);
     }
-    initOfflineAudio = (numberOfChannels, length, sampleRate) => {
-        this.offlineContext = new OfflineAudioContext(numberOfChannels, length, sampleRate);
-        this.audioSource = this.offlineContext.createBufferSource();
-        this.gain = this.offlineContext.createGain();
-        this.volume = this.gain.gain.value;
-        this.audioConvolver = this.offlineContext.createConvolver()
-        this.masterGain = this.offlineContext.createGain();
-        this.masterCompression = this.offlineContext.createDynamicsCompressor();
-    }
     loadBuffer = audioBuffer => {
-        // this.initOfflineAudio(audioBuffer.numberOfChannels, audioBuffer.length, audioBuffer.sampleRate)
-        // let audioBufferSourceNode = this.offlineContext.createBufferSource();
         let audioBufferSourceNode = this.audioContext.createBufferSource();
         audioBufferSourceNode.buffer = audioBuffer;
         this.setAudioSource(audioBufferSourceNode)
+
+        this.setBlockSize(audioBuffer.sampleRate)
 
         for(let i = 0; i < this.numberOfChannels; i++){
             let channel = new AudioChannel({
@@ -176,8 +177,6 @@ export class AudioTrack{
             })
             this.channels.push(channel)
         }
-
-        // this.renderAudio();
     }
     setAudioSource = audioSource => {//채널 변수와 멤버 수를 초기화
         this.audioSource = audioSource
@@ -188,47 +187,6 @@ export class AudioTrack{
             this.showTrackAttributes();
         }
     }
-    renderAudio = () => {
-        if(this.isRendered){
-            let audioReplace = this.offlineContext.createBufferSource();
-            audioReplace.buffer = this.audioSource.buffer;
-            this.audioSource = audioReplace
-        }
-        this.isRendered = true;
-
-        this.audioSource.connect(this.gain);
-        this.gain.connect(this.offlineContext.destination);
-        
-        console.log(this.offlineContext.state)
-        if(this.offlineContext.state === 'closed'){
-            this.offlineContext.resume()
-        }
-
-        this.audioSource.start();
-        this.offlineContext.startRendering().then(renderedBuffer => {
-            this.audioCurrent = this.audioContext.createBufferSource();
-            this.audioCurrent.buffer = renderedBuffer;
-            this.audioCurrent.connect(this.audioContext.destination);
-
-            for(let i = 0; i < this.numberOfChannels; i++){
-                let channel = new AudioChannel({
-                    track: this,
-                    $trackElement: this.$trackElement,
-                    channelNum: i
-                })
-                this.channels.push(channel)
-            }
-
-            const width = Math.floor(this.audioCurrent.buffer.duration)
-                * this.app.samplePerDuration / this.app.sampleDensity + this.app.trackPadding * 2 + 1;
-            this.draw(width)
-        }).catch(function(err) {
-            console.log('Rendering failed: ' + err);
-            // Note: The promise should reject when startRendering is called a second time on an OfflineAudioContext
-        });
-        
-    }
-
     showTrackAttributes = () => {
         let $volume = document.querySelector(".volume")
         $volume.value =  Math.round(this.gain.gain.value * 10) / 10
@@ -236,11 +194,12 @@ export class AudioTrack{
         $speed.value = Math.round(this.audioSource.playbackRate.value * 10) / 10
     }
     play = startAt => {
-        // if(this.audioSource.loop){
-        //     if(startAt < this.audioSource.loopStart || startAt > this.audioSource.loopEnd){
-        //         startAt = this.audioSource.loopStart
-        //     }
-        // }
+        this.isPlaying = true;
+        if(this.audioSource.loop){
+            if(startAt < this.audioSource.loopStart || startAt > this.audioSource.loopEnd){
+                startAt = this.audioSource.loopStart
+            }
+        }
         let usedSource = this.audioSource;
         this.audioSource = this.audioContext.createBufferSource();
         this.audioSource.buffer = usedSource.buffer
@@ -253,6 +212,7 @@ export class AudioTrack{
         this.audioSource.start(0, startAt, this.audioSource.buffer.duration);
     }
     stop = () => {
+        this.isPlaying = false;
         this.audioSource.stop(0);
     }
 
@@ -306,6 +266,14 @@ export class AudioTrack{
         this.cancelDarkenSelection(this.selectedX1, this.selectedX2);
         this.selectedX2 = Math.round(window.event.clientX - this.$canvas.getBoundingClientRect().left); //Update the current position X
         if(this.selectedX2 === this.selectedX1){
+            for(var i in this.app.audioTracks){
+                let track = this.app.audioTracks[i];
+                track.playAudio.drawPlaybackBar(this.selectedX2);
+                let playbackBarSpeed = (track.app.samplePerDuration / track.app.sampleDensity);
+                track.app.playbackTime = this.selectedX2 / playbackBarSpeed;
+                track.app.$currentTime.innerText = new Date(track.app.playbackTime * 1000).toISOString().substr(11, 8);
+            }
+
             this.selectedX1 = 0;
             this.selectedX2 = 0;
             this.isDarkened = false;
@@ -366,7 +334,7 @@ export class AudioTrack{
         const x1 = Math.round(((this.selectedX1 < this.selectedX2) ? this.selectedX1 : this.selectedX2) * this.app.sampleDensity);
         const x2 = Math.round(((this.selectedX1 < this.selectedX2) ? this.selectedX2 : this.selectedX1) * this.app.sampleDensity);
 
-        const blockSize = this.app.blockSize
+        const blockSize = this.blockSize
 
         this.app.copiedBuffer = this.audioContext.createBuffer(
             this.audioSource.buffer.numberOfChannels, (x2 - x1) * blockSize, this.audioSource.buffer.sampleRate);
@@ -390,7 +358,7 @@ export class AudioTrack{
         const x1 = Math.round(((this.selectedX1 < this.selectedX2) ? this.selectedX1 : this.selectedX2) * this.app.sampleDensity);
         const x2 = Math.round(((this.selectedX1 < this.selectedX2) ? this.selectedX2 : this.selectedX1) * this.app.sampleDensity);
 
-        const blockSize = this.app.blockSize
+        const blockSize = this.blockSize
 
         for(let i = 0; i < this.numberOfChannels; i++){
             let srcData = this.audioSource.buffer.getChannelData(i);
@@ -422,8 +390,24 @@ export class AudioTrack{
             }
         }
 
+        // if(this.app.copiedBuffer.sampleRate !== this.audioSource.buffer.sampleRate){
+        //     let c = new OfflineAudioContext(this.app.copiedBuffer.numberOfChannels, this.app.copiedBuffer.length, 
+        //         this.audioSource.buffer.sampleRate);
+        //     let b = c.createBuffer(this.app.copiedBuffer.numberOfChannels, this.app.copiedBuffer.length, 
+        //         this.app.copiedBuffer.sampleRate);
+        //     b = this.app.copiedBuffer;
+        //     let s = c.createBufferSource();
+        //     s.buffer = b;
+        //     s.connect(c.destination);
+        //     s.start();
+        //     c.startRendering().then(function (result) {
+        //         this.app.copiedBuffer = result;
+        //         this.pasteWave();
+        //     });
+        // }
+
         let prevData, pasteData, newData, newBuffer, prevDarken = false;
-        const blockSize = this.app.blockSize
+        const blockSize = this.blockSize
         for(let i = 0; i < this.numberOfChannels; i++){
             prevData = this.audioSource.buffer.getChannelData(i);
             pasteData = this.app.copiedBuffer.getChannelData(i);
@@ -455,7 +439,6 @@ export class AudioTrack{
             + this.app.trackPadding * 2 + 1;
         this.draw(trackWidth, this.offsetHeight);
         
-        console.log(this.app.sampleDensity)
         const width = this.app.copiedBuffer.duration * this.app.samplePerDuration / this.app.sampleDensity
         
         this.cancelDarkenSelection(this.selectedX1, this.selectedX2)
