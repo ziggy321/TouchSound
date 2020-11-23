@@ -115,10 +115,6 @@ export class AudioEffect{
             this.$speed.value = 1
             return;
         }
-        if(this.app.isPlaying){
-            alert("재생 중에는 재생 속도 변경을 허용하지 않습니다.");
-            return;
-        }
         let prevRate = Math.round(track.audioSource.playbackRate.value * 10) / 10
         let rate = Math.round(this.$speed.value * 10) / 10
         if(rate < 0){
@@ -128,15 +124,14 @@ export class AudioEffect{
         this.$speed.value = rate
             
         track.draw(Math.round(track.offsetWidth * prevRate / rate));
+        
+        this.app.stopAudio();
+        this.app.playAudio();
     }
     speedUp = () => {
         let track = this.getTrack();
             
         if(!track) {
-            return;
-        }
-        if(this.app.isPlaying){
-            alert("재생 중에는 재생 속도 변경을 허용하지 않습니다.");
             return;
         }
         let prevRate = Math.round(track.audioSource.playbackRate.value * 10) / 10
@@ -147,15 +142,14 @@ export class AudioEffect{
         this.$speed.value = rate
             
         track.draw(Math.round(track.offsetWidth * prevRate / rate));
+        
+        this.app.pauseAudio();
+        this.app.playAudio();
     }
     speedDown = () => {
         let track = this.getTrack();
 
         if(!track) {
-            return;
-        }
-        if(this.app.isPlaying){
-            alert("재생 중에는 재생 속도 변경을 허용하지 않습니다.");
             return;
         }
         let prevRate = Math.round(track.audioSource.playbackRate.value * 10) / 10
@@ -168,5 +162,8 @@ export class AudioEffect{
         this.$speed.value = rate
             
         track.draw(Math.round(track.offsetWidth * prevRate / rate));
+        
+        this.app.pauseAudio();
+        this.app.playAudio();
     }
 }

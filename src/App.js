@@ -108,7 +108,16 @@ export class App {
         this.isPlaying = true;
 
         let initial = Object.keys(this.audioTracks)[0];
-        this.startTime = this.audioTracks[initial].audioContext.currentTime - this.playbackTime;
+        this.startTime = this.audioTracks[initial].audioContext.currentTime - this.playbackTime
+                / this.audioTracks[initial].audioSource.playbackRate.value;
+        for(var i in this.audioTracks){
+            let currentTrack = this.audioTracks[i];
+            let newStartTime = this.audioTracks[initial].audioContext.currentTime - this.playbackTime
+                / currentTrack.audioSource.playbackRate.value;
+            if(newStartTime > this.startTime){
+                this.startTime = newStartTime;
+            }
+        }
         for(var i in this.audioTracks){
             let currentTrack = this.audioTracks[i];
             this.timer[i] = setInterval(() => {
