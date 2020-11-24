@@ -104,7 +104,7 @@ export class App {
 
     playAudio = () => {
         if(this.isPlaying) return;
-        console.log('play start')
+        console.log('play')
         this.isPlaying = true;
 
         let initial = Object.keys(this.audioTracks)[0];
@@ -123,6 +123,7 @@ export class App {
         }
     }
     pauseAudio = () => {
+        if(!this.isPlaying) return;
         console.log('paused')
         this.isPlaying = false;
         
