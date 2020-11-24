@@ -43,14 +43,11 @@ export class AudioEffect{
         if(track.isMuted) {
             track.gain.gain.value = track.mutedVolume;
             track.isMuted = false;
-            $item.innerText = 'Mute';
             return;
         }
         track.mutedVolume = track.gain.gain.value;
         track.gain.gain.value = 0;
         track.isMuted = true;
-        console.log($item.innerText)
-        $item.innerText = 'Muted';
     }
     getTrack = () => {
         if(this.app.selectMode === 'channel'){

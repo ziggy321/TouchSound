@@ -25,11 +25,7 @@ export class AudioTrack{
         this.app = app;
         this.trackID = id;
 
-        let color;
-        do{
-            color = Math.round(Math.random() * 0xffffff);
-            this.waveColor = "#" + color.toString(16);
-        }while(color > 0xaaaaaa);
+        this.waveColor = "#" + Math.round(Math.random() * 0x888888).toString(16);
 
         // DOM Components
         const $trackList = document.querySelector('.trackList')
@@ -266,12 +262,20 @@ export class AudioTrack{
         this.cancelDarkenSelection(this.selectedX1, this.selectedX2);
         this.selectedX2 = Math.round(window.event.clientX - this.$canvas.getBoundingClientRect().left); //Update the current position X
         if(this.selectedX2 === this.selectedX1){
+            if(this.app.isPlaying){
+                this.app.wasPlaying = true;
+                this.app.pauseAudio();
+            }
             for(var i in this.app.audioTracks){
                 let track = this.app.audioTracks[i];
                 track.playAudio.drawPlaybackBar(this.selectedX2);
                 let playbackBarSpeed = (track.app.samplePerDuration / track.app.sampleDensity);
                 track.app.playbackTime = this.selectedX2 / playbackBarSpeed;
                 track.app.$currentTime.innerText = new Date(track.app.playbackTime * 1000).toISOString().substr(11, 8);
+            }
+            if(this.app.wasPlaying){
+                this.app.wasPlaying = false;
+                this.app.playAudio();
             }
 
             this.selectedX1 = 0;
@@ -281,7 +285,7 @@ export class AudioTrack{
         else{
             this.darkenSelection(this.selectedX1, this.selectedX2);
         }
-    };    
+    };
     borderTrack = () => {
         this.canvasCtx.fillStyle = 'rgb(255, 0, 0)'; // draw wave with canvas
         this.canvasCtx.fillRect(0, -this.$canvas.height/2, this.$canvas.width, 2);

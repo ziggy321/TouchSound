@@ -10,6 +10,8 @@ export class PlayAudio{
         this.$canvas.height = this.track.app.defaultHeight + this.track.app.wavePadding * 2
         this.canvasCtx = this.$canvas.getContext('2d');
 
+        this.wasPlaying = false;
+
         document.addEventListener("dragstart", event => {
             if(this.track.mousePressed === true){
                 this.track.mousePressed = false;
@@ -20,6 +22,10 @@ export class PlayAudio{
                     channel.mousePressed = false;
                 }
             }
+            if(this.track.app.isPlaying){
+                this.wasPlaying = true;
+                this.track.app.pauseAudio();
+            }
             this.$canvas.width = 4;
         }, false);
 
@@ -29,6 +35,10 @@ export class PlayAudio{
 
         document.addEventListener("dragend", event => {
             this.dragPlaybackBar(event);
+            if(this.wasPlaying){
+                this.wasPlaying = false;
+                this.track.app.playAudio();
+            }
         }, false);
     }
 
