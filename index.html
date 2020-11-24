@@ -15,11 +15,13 @@
 		      width: 100%;
 		      margin: 0 0;
 	      }
-	      </style> -->
+          </style> -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
         <link rel="stylesheet" href="style.css">
     </head>
     <body>
         <div style='display: flex'>
+<<<<<<< Updated upstream
             <div class="downloadAudio">
                 <button class="saveAudio">
                     <img src="img/saveButton.JPG" alt="" class="button">
@@ -36,15 +38,57 @@
             </button>
             <button class="stopAudio">
                 <img src="img/stopButton.JPG" alt="" class="button">
+=======
+        <div class="btn-group" role="group" >
+            <button type="button" class="btn btn-secondary saveAudio">
+                <span>Save</span>
             </button>
-
+            <button type="button" class="btn btn-secondary recordAudio">
+                <span>Record</span>
+            </button>
+            <button type="button" class="btn btn-secondary playAudio">
+                <span>Play</span>
+            </button>
+            <button type="button" class="btn btn-secondary pauseAudio">
+                <span>Pause</span>
+            </button>
+            <button type="button" class="btn btn-secondary  stopAudio">
+                <span>Stop</span> 
+>>>>>>> Stashed changes
+            </button>
+        
             <div class='adjustBox'>
+<<<<<<< Updated upstream
                 <label class='adjustLabel'>Zoom</label>
                 <div class='inputUnit'>
                     <button class='zoomIn'>in</button>
                     <input class='zoom valueAdjust' type="text" value="1" />
                     <button class='zoomOut'>out</button>
+=======
+                <label class='btn btn-secondary adjustLabel'>Time</label>
+                <span class='btn btn-secondary currentTime'>00:00:00</span>
+            </div>
+        </div>
+
+            <!-- <div class='adjustBox'>
+                <button class='adjustLabel'>Loop</button>
+                <input class='loopStart valueAdjust' type="text" value="00:00:00" />
+                <input class='loopEnd valueAdjust' type="text" value="00:00:00" />
+            </div> -->
+
+            <div class='adjustBox'>
+            <div class="btn-group" role="group">
+                <label class='btn btn-secondary adjustLabel'>Zoom</label>
+                <div class='inputUnit'>
+                    <button class='btn btn-secondary zoomHorizontalIn'>◀▶</button>
+                    <input class='zoomHorizontal valueAdjust' type="text" value="1" />
+                    <button class='btn btn-secondary zoomHorizontalOut'>▶◀</button>
+                    <button class='btn btn-secondary zoomVerticalIn'>▼▲</button>
+                    <input class='zoomVertical valueAdjust' type="text" value="1" />
+                    <button class='btn btn-secondary zoomVerticalOut'>▲▼</button>
+>>>>>>> Stashed changes
                 </div>
+            </div>
             </div>
 
             <div class="adjustBox">
@@ -55,6 +99,7 @@
                 </select>
             </div>
             
+<<<<<<< Updated upstream
             <button class="copyAudio">
                 <img src="img/copyButton.JPG" alt="" class="button">
             </button>
@@ -68,6 +113,24 @@
                 <img src="img/deleteButton.JPG" alt="" class="button">
             </button>
 
+=======
+            <div class="btn-group" role="group" >
+                <button class="btn btn-secondary copyAudio">
+                    <span>Copy</span>
+                </button>
+                <button class="btn btn-secondary cutAudio">
+                    <span>Cut</span>
+                </button>
+                <button class="btn btn-secondary pasteAudio">
+                    <span>Paste</span>
+                </button>
+                <button class="btn btn-secondary deleteAudio">
+                    <span>Delete</span>
+                </button>
+            </div>
+            
+            <div class="btn-group" role="group" >
+>>>>>>> Stashed changes
             <div class='adjustBox'>
                 <label class='adjustLabel'>Volume per track</label>
                 <div class='inputUnit'>
@@ -86,13 +149,18 @@
                 </div>
             </div>
         </div>
-
-        <div class="trackList"></div>
-
+        </div>
+        
+        <div class="btn-group" role="group">
+            <div class="btn-group trackList"></div>
+        </div>
+        
         <button class="createTrack">
             <img src="img/createTrackButton.JPG" alt="" class="button">
         </button>
       
         <script src="main.js" type="module"></script>
+        <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx" crossorigin="anonymous"></script>
     </body>
 </html>

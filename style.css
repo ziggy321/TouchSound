@@ -1,94 +1,106 @@
-.button{
-    width: auto; height: auto;
-    max-width: 50px;
-    max-height: 50px;
-    
-    background-color: transparent;
-    border: none;
-    outline: none;
-    cursor: pointer;
-}
-.buttonInTrack{
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-    
-    width: auto; height: auto;
-    max-width: 50px;
-    max-height: 50px;
+.button {
+  width: auto;
+  height: auto;
+  max-width: 50px;
+  max-height: 50px;
 
-    background-color: transparent;
-    border: none;
-    outline: none;
-    cursor: pointer;
+  background-color: transparent;
+  border: none;
+  outline: none;
+  cursor: pointer;
+}
+.buttonInTrack {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+
+  width: auto;
+  height: auto;
+  max-width: 50px;
+  max-height: 50px;
+
+  background-color: transparent;
+  border: none;
+  outline: none;
+  cursor: pointer;
 }
 
-.adjustBox{
-    border: solid;
+.adjustBox {
+  border: solid;
 }
-.adjustLabel{
-    display: block;
-    text-align: center;
-    font-size: 3px;
-    /* margin-left: 10px;
+.adjustLabel {
+  display: block;
+  text-align: center;
+  font-size: 3px;
+  /* margin-left: 10px;
     margin-right: 10px; */
 }
-.inputUnit{
-    display: block;
-    max-height: 20px;
-    /* margin-right: 10px;
+.inputUnit {
+  display: block;
+  max-height: 20px;
+  /* margin-right: 10px;
     margin-left: 10px; */
 }
 
-.valueAdjust{
-    max-width: 20px;
+.valueAdjust {
+  max-width: 28px;
 }
 
-.trackList{
-    position: relative;
+.trackList {
+  position: relative;
 }
 
-.trackElement{
-    display: flex;
-    position: relative;
+.trackElement {
+  display: flex;
+  position: relative;
 }
 
-.trackInterface{
-    display: flex;
-    position: relative;
-    flex-direction: column;
+.trackInterface {
+  display: flex;
+  position: relative;
+  flex-direction: column;
 }
 
-.trackChannelList{
-    position: relative;
-    left: 2px;
-    top: 2px;
+.trackChannelList {
+  position: relative;
+  left: 2px;
+  top: 2px;
 }
 
-.trackBackground{
-    z-index: 1;
-    position: relative;
-    left: 0px;
-    top: 0px;
+.trackBackground {
+  z-index: 1;
+  position: relative;
+  left: 0px;
+  top: 0px;
 }
 
-.channelBackground{
-    z-index: 2;
-    position: absolute;
-    left: 2px;
-    top: 2px;
+.channelBackground {
+  z-index: 2;
+  position: absolute;
+  left: 2px;
+  top: 2px;
 }
 
-.waveForm{
-    z-index: 3;
-    position: absolute;
-    left: 0px;
-    top: 0px;
+.waveForm {
+  z-index: 3;
+  position: absolute;
+  left: 0px;
+  top: 0px;
 }
 
+<<<<<<< Updated upstream
 .playbackBar{
     z-index: 4;
     position: absolute;
     left: 0px;
     top: 0px;
 }
+=======
+.playbackBar {
+  z-index: 4;
+  position: absolute;
+  left: 0px;
+  top: 0px;
+  cursor: grab;
+}
+>>>>>>> Stashed changes
