@@ -122,8 +122,10 @@ export class AudioEffect{
             
         track.draw(Math.round(track.offsetWidth * prevRate / rate));
         
-        this.app.stopAudio();
-        this.app.playAudio();
+        if(this.app.isPlaying){
+            this.app.pauseAudio();
+            this.app.playAudio();
+        }
     }
     speedUp = () => {
         let track = this.getTrack();
@@ -140,8 +142,10 @@ export class AudioEffect{
             
         track.draw(Math.round(track.offsetWidth * prevRate / rate));
         
-        this.app.pauseAudio();
-        this.app.playAudio();
+        if(this.app.isPlaying){
+            this.app.pauseAudio();
+            this.app.playAudio();
+        }
     }
     speedDown = () => {
         let track = this.getTrack();
@@ -160,7 +164,9 @@ export class AudioEffect{
             
         track.draw(Math.round(track.offsetWidth * prevRate / rate));
         
-        this.app.pauseAudio();
-        this.app.playAudio();
+        if(this.app.isPlaying){
+            this.app.pauseAudio();
+            this.app.playAudio();
+        }
     }
 }

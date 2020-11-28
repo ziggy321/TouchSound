@@ -94,7 +94,7 @@ export class App {
         });
 
         this.recordAudio = new RecordAudio({
-
+            app: this
         })
 
         this.audioEffect = new AudioEffect({

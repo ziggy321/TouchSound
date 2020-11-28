@@ -20,7 +20,13 @@ export class LoadAudio{
                 alert("올바른 파일 형식이 아닙니다.");
                 return;
             }
-            file.arrayBuffer()
+            this.loadAudioData(file);
+        };
+        $input.click();
+    }
+
+    loadAudioData = file => {
+        file.arrayBuffer()
             .then(buffer => this.track.audioContext.decodeAudioData(buffer))
             .then(audioBuffer => {
                 console.log(audioBuffer.sampleRate, audioBuffer.length, audioBuffer.duration)
@@ -33,7 +39,5 @@ export class LoadAudio{
                 this.track.draw(width)
             })
             .catch(e => console.log(e));
-        };
-        $input.click();
     }
 }
