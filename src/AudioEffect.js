@@ -75,6 +75,7 @@ export class AudioEffect{
             track.gain.gain.value = Math.round(this.$volume.value * 10) / 10
             this.$volume.value = Math.round(this.$volume.value * 10) / 10
         }
+        track.draw();
     }
     volumeUp = () => {
         let track = this.getTrack();
@@ -87,7 +88,7 @@ export class AudioEffect{
             track.gain.gain.value += this.volumeChangeUnit;
             this.$volume.value = Math.round(track.gain.gain.value * 10) / 10
         }
-        track.renderAudio();
+        track.draw();
     }
     volumeDown = () => {
         let track = this.getTrack();
@@ -102,63 +103,70 @@ export class AudioEffect{
             track.gain.gain.value -= this.volumeChangeUnit;
             this.$volume.value = Math.round(track.gain.gain.value * 10) / 10
         }
+        track.draw();
     }
-    setSpeed = () => {        
-        // for(let i in this.app.audioTracks){
-        //     let track = this.app.audioTracks[i]
-            let track = this.getTrack();
+    setSpeed = () => {     
+        let track = this.getTrack();
 
-            if(!track) {
-                this.$speed.value = 1
-                return;
-                // continue;
-            }
-            let rate = Math.round(this.$speed.value * 10) / 10
-            if(rate < 0){
-                rate = 1;
-            }
-            track.audioSource.playbackRate.value = rate
-            this.$speed.value = rate
-        // }
+        if(!track) {
+            this.$speed.value = 1
+            return;
+        }
+        let prevRate = Math.round(track.audioSource.playbackRate.value * 10) / 10
+        let rate = Math.round(this.$speed.value * 10) / 10
+        if(rate < 0){
+            rate = 1;
+        }
+        track.audioSource.playbackRate.value = rate
+        this.$speed.value = rate
+            
+        track.draw(Math.round(track.offsetWidth * prevRate / rate));
+        
+        if(this.app.isPlaying){
+            this.app.pauseAudio();
+            this.app.playAudio();
+        }
     }
     speedUp = () => {
-        // for(let i in this.app.audioTracks){
-        //     let track = this.app.audioTracks[i]
-            let track = this.getTrack();
+        let track = this.getTrack();
             
-            if(!track) {
-                return;
-                // continue;
-            }
-            let rate = Math.round(track.audioSource.playbackRate.value * 10) / 10 + this.speedChangeUnit;
-            rate = Math.round(rate * 10) / 10;
-            track.audioSource.playbackRate.value = rate
-            track.rate = rate
-            this.$speed.value = rate
-        // }
+        if(!track) {
+            return;
+        }
+        let prevRate = Math.round(track.audioSource.playbackRate.value * 10) / 10
+        let rate = Math.round(track.audioSource.playbackRate.value * 10) / 10 + this.speedChangeUnit;
+        rate = Math.round(rate * 10) / 10;
+        track.audioSource.playbackRate.value = rate
+        track.rate = rate
+        this.$speed.value = rate
+            
+        track.draw(Math.round(track.offsetWidth * prevRate / rate));
+        
+        if(this.app.isPlaying){
+            this.app.pauseAudio();
+            this.app.playAudio();
+        }
     }
     speedDown = () => {
-        // for(let i in this.app.audioTracks){
-        //     let track = this.app.audioTracks[i]
-            let track = this.getTrack();
+        let track = this.getTrack();
 
-            if(!track) {
-                return;
-                // continue;
-            }
-            let rate = Math.round(track.audioSource.playbackRate.value * 10) / 10 - this.speedChangeUnit;
-            if(rate < 0) {
-                return;
-                // continue
-            }
-            rate = Math.round(rate * 10) / 10;
-            track.audioSource.playbackRate.value = rate
-            this.$speed.value = rate
-        // }
-    }
-
-    setPitch = newSemitones => {
-        // const curSemitones = 12 * Math.log2(this.audioSource.playbackRate);
-        // this.audioSource.playbackRate = Math.pow(2, newSemitones/12);
+        if(!track) {
+            return;
+        }
+        let prevRate = Math.round(track.audioSource.playbackRate.value * 10) / 10
+        let rate = Math.round(track.audioSource.playbackRate.value * 10) / 10 - this.speedChangeUnit;
+        if(rate < 0) {
+            return;
+        }
+        rate = Math.round(rate * 10) / 10;
+        track.audioSource.playbackRate.value = rate
+        this.$speed.value = rate
+            
+        track.draw(Math.round(track.offsetWidth * prevRate / rate));
+        
+        if(this.app.isPlaying){
+            this.app.pauseAudio();
+            this.app.playAudio();
+        }
     }
 }
