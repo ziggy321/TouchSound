@@ -26,7 +26,7 @@ export class SaveAudio{
         }
         audioComplete.start();
 
-        mediaRecorder.stop();
+        mediaRecorder.stop();rm
         audioComplete.stop();
     }
 

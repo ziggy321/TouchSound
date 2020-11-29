@@ -88,19 +88,16 @@
   top: 0px;
 }
 
-<<<<<<< Updated upstream
-.playbackBar{
-    z-index: 4;
-    position: absolute;
-    left: 0px;
-    top: 0px;
+<<<<<<< Updated upstream .playbackBar {
+  z-index: 4;
+  position: absolute;
+  left: 0px;
+  top: 0px;
 }
-=======
-.playbackBar {
+======= .playbackBar {
   z-index: 4;
   position: absolute;
   left: 0px;
   top: 0px;
   cursor: grab;
 }
->>>>>>> Stashed changes
