@@ -14,8 +14,8 @@ export class AudioChannel{
         // setup channel canvas
         this.$canvas = document.createElement('canvas');
         this.$canvas.className = 'channelBackground';
-        this.channelHeight = (track.$canvas.height - 4 - (track.numberOfChannels - 1)*2) / track.numberOfChannels
-        this.top = 2 + (this.channelHeight + 2) * channelNum;
+        this.channelHeight = this.track.channelHeight;
+        this.top = 2 + (this.channelHeight + this.track.app.trackPadding) * channelNum;
         this.$canvas.style = `
             z-index: 2;
             position: absolute;
@@ -83,11 +83,11 @@ export class AudioChannel{
             this.canvasCtx.fillStyle = 'rgb(200, 200, 200)';
             this.canvasCtx.fillRect(0, 0, this.$canvas.width, this.$canvas.height);
             
-            this.canvasCtx.translate(0, this.offsetHeight / 2 + this.padding); // Set Y = 0 to be in the middle of the canvas
+            this.canvasCtx.translate(0, this.offsetHeight)
         }
         if(h !== this.offsetHeight){
-            this.channelHeight = (this.track.$canvas.height - 4 - (this.track.numberOfChannels - 1)*2) / this.track.numberOfChannels
-            this.top = 2 + (this.channelHeight + 2) * this.channelNum;
+            this.channelHeight = this.track.channelHeight;
+            this.top = 2 + (this.channelHeight + this.track.app.trackPadding) * this.channelNum;
             this.$canvas.style = `
                 z-index: 2;
                 position: absolute;
@@ -97,13 +97,13 @@ export class AudioChannel{
 
             this.offsetHeight = h;
 
-            this.$canvas.height = (this.offsetHeight + this.padding * 2)// * this.dpr;
+            this.$canvas.height = this.offsetHeight
 
             this.canvasCtx.clearRect(0, 0, this.$canvas.width, this.$canvas.height);
             this.canvasCtx.fillStyle = 'rgb(200, 200, 200)';
             this.canvasCtx.fillRect(0, 0, this.$canvas.width, this.$canvas.height);
             
-            this.canvasCtx.translate(0, this.offsetHeight / 2 + this.padding); // Set Y = 0 to be in the middle of the canvas
+            this.canvasCtx.translate(0, this.offsetHeight / 2)
         }
 
         if(this.track.app.selectMode === 'channel' &&

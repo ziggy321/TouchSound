@@ -72,7 +72,15 @@ export class AudioTrack{
             this.copyWave.call(this)
             this.deleteWave.call(this)
         })
-        this.$pasteButton.addEventListener('click', this.pasteWave.bind(this))
+        this.$pasteButton.addEventListener('click', () => {
+            this.pasteWave.call(this);
+            // if(this.numberOfChannels === 0 || this.app.copiedBuffer.sampleRate === this.audioSource.buffer.sampleRate){
+            //     this.pasteWave.call(this);
+            // }
+            // else{
+            //     this.convertSampleRateThenPasteWave();
+            // }
+        });
         this.$deleteButton.addEventListener('click', this.deleteWave.bind(this))
         
         // initialize audio context
@@ -120,12 +128,13 @@ export class AudioTrack{
             this.borderTrack();
         }
 
+        this.channelHeight = (this.$canvas.height - this.app.trackPadding * (this.numberOfChannels + 1)) / this.numberOfChannels;
+
         // draw wave
         for(let i = 0; i < this.numberOfChannels; i++){
             let channel = this.channels[i];
             
-            channel.draw(this.offsetWidth - this.app.trackPadding * 2, 
-                (this.offsetHeight - this.app.trackPadding * 2 - this.numberOfChannels - 1) / this.numberOfChannels)
+            channel.draw(this.offsetWidth - this.app.trackPadding * 2, this.channelHeight);
         }
         
         if(this.isDarkened){
@@ -386,29 +395,17 @@ export class AudioTrack{
 
         if(this.app.copiedBuffer.numberOfChannels !== this.numberOfChannels){
             if(this.numberOfChannels === 0){
-                this.loadBuffer(this.app.copiedBuffer)
+                this.loadBuffer(this.app.copiedBuffer);
+                const width = Math.floor(this.audioSource.buffer.duration)
+                    * this.app.samplePerDuration / this.app.sampleDensity + this.app.trackPadding * 2 + 1;
+                this.draw(width)
+                return;
             }
             else{
                 alert("채널 수가 같은 트랙에만 붙여넣기 가능합니다.")
                 return;
             }
         }
-
-        // if(this.app.copiedBuffer.sampleRate !== this.audioSource.buffer.sampleRate){
-        //     let c = new OfflineAudioContext(this.app.copiedBuffer.numberOfChannels, this.app.copiedBuffer.length, 
-        //         this.audioSource.buffer.sampleRate);
-        //     let b = c.createBuffer(this.app.copiedBuffer.numberOfChannels, this.app.copiedBuffer.length, 
-        //         this.app.copiedBuffer.sampleRate);
-        //     b = this.app.copiedBuffer;
-        //     let s = c.createBufferSource();
-        //     s.buffer = b;
-        //     s.connect(c.destination);
-        //     s.start();
-        //     c.startRendering().then(function (result) {
-        //         this.app.copiedBuffer = result;
-        //         this.pasteWave();
-        //     });
-        // }
 
         let prevData, pasteData, newData, newBuffer, prevDarken = false;
         const blockSize = this.blockSize
@@ -474,5 +471,36 @@ export class AudioTrack{
             offset += arr.length;
         }
         return result;
+    }
+
+    convertSampleRateThenPasteWave = () => {
+        if(this.app.selectMode === 'channel') return;
+        if(this.app.selectedTrackID !== this.trackID || !this.app.copiedBuffer) {
+            return;
+        }
+
+        if(this.app.copiedBuffer.numberOfChannels !== this.numberOfChannels){
+            if(this.numberOfChannels === 0){
+                this.loadBuffer(this.app.copiedBuffer)
+            }
+            else{
+                alert("채널 수가 같은 트랙에만 붙여넣기 가능합니다.")
+                return;
+            }
+        }
+        
+        let c = new OfflineAudioContext(this.app.copiedBuffer.numberOfChannels, this.app.copiedBuffer.length, 
+            this.audioSource.buffer.sampleRate);
+        let b = c.createBuffer(this.app.copiedBuffer.numberOfChannels, this.app.copiedBuffer.length, 
+            this.app.copiedBuffer.sampleRate);
+        b = this.app.copiedBuffer;
+        let s = c.createBufferSource();
+        s.buffer = b;
+        s.connect(c.destination);
+        s.start();
+        c.startRendering().then(function (result) {
+            this.app.copiedBuffer = result;
+            this.pasteWave();
+        });
     }
 }
