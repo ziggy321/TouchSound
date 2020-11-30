@@ -45,7 +45,7 @@ export class PlayAudio{
     drawPlaybackBar = x => {
         if(x >= this.track.$canvas.width){
             clearInterval(this.track.app.timer[this.track.trackID]);
-            return;
+            x = this.track.$canvas.width
         }
         this.$canvas.style = `left: ${x}px`;
         this.$canvas.height = this.track.app.defaultHeight * this.track.app.$zoomVerticalValue.value + this.track.app.wavePadding * 2
