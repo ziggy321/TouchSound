@@ -22,6 +22,11 @@ export class RecordAudio {
             this.audio.load();
             console.log('stop recording');
         } else {
+            let track = this.app.audioTracks[this.app.selectedTrackID];
+            if(track.numberOfChannels > 1){
+                alert("The track must be empty or the number of channel must be 1 for recording.");
+                return;
+            }
             this.$recordButton.classList.add('recording');
             if (!this.recorder) {
                 this.recorder = await this.recordAudio();
@@ -51,7 +56,7 @@ export class RecordAudio {
                         const audioUrl = URL.createObjectURL(audioBlob);
                         const load = () => {
                             let track = this.app.audioTracks[this.app.selectedTrackID];
-                            track.loadAudio.loadAudioData(audioBlob);
+                            track.loadAudio.recordAudioData(audioBlob);
                         }
                         resolve({ audioBlob, audioUrl, load });
                     }); 

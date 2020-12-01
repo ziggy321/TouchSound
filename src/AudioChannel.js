@@ -309,7 +309,13 @@ export class AudioChannel{
 
         if(!this.isDarkened){
             const start = x * blockSize
-            newData = this.float32ArrayConcat(prevData.slice(0, start), pasteData, prevData.slice(start))
+            if(start > prevData.length){
+                let extendedData = new Float32Array(start - prevData.length);
+                newData = this.float32ArrayConcat(prevData, extendedData, pasteData)
+            }
+            else{
+                newData = this.float32ArrayConcat(prevData.slice(0, start), pasteData, prevData.slice(start))
+            }
         }
         else{
             prevDarken = true
@@ -317,7 +323,13 @@ export class AudioChannel{
             const x2 = ((this.selectedX1 < this.selectedX2) ? this.selectedX2 : this.selectedX1) * this.track.app.sampleDensity;
             const start = x1 * blockSize
             const end = x2 * blockSize
-            newData = this.float32ArrayConcat(prevData.slice(0, start), pasteData, prevData.slice(end))
+            if(start > prevData.length){
+                let extendedData = new Float32Array(start - prevData.length);
+                newData = this.float32ArrayConcat(prevData, extendedData, pasteData)
+            }
+            else{
+                newData = this.float32ArrayConcat(prevData.slice(0, start), pasteData, prevData.slice(end))
+            }
         }
 
         newBuffer = this.track.audioContext.createBuffer(this.track.numberOfChannels, 

@@ -183,6 +183,82 @@ export class AudioTrack{
             this.channels.push(channel)
         }
     }
+    recordBuffer = audioBuffer => {
+
+        if(!this.audioSource.buffer){
+            this.setBlockSize(audioBuffer.sampleRate);
+            
+            let playbackBarSpeed = this.app.samplePerDuration / this.app.sampleDensity
+            let emptyData = new Float32Array(Math.round(this.app.playbackTime * playbackBarSpeed) * this.blockSize);
+            let data = audioBuffer.getChannelData(0);
+            let newData = this.float32ArrayConcat(emptyData, data);
+            console.log(emptyData.length, data.length, newData.length)
+            let newBuffer = this.audioContext.createBuffer(1, newData.length, this.audioContext.sampleRate)
+            newBuffer.copyToChannel(newData, 0);
+
+            let audioBufferSourceNode = this.audioContext.createBufferSource();
+            audioBufferSourceNode.buffer = newBuffer;
+            this.setAudioSource(audioBufferSourceNode)
+            this.setBlockSize(newBuffer.sampleRate)
+
+            for(let i = 0; i < this.numberOfChannels; i++){
+                let channel = new AudioChannel({
+                    track: this,
+                    $trackElement: this.$trackElement,
+                    channelNum: i
+                })
+                this.channels.push(channel)
+            }
+        }
+        else if(this.app.playbackTime > this.audioSource.buffer.duration){
+            let prevBuffer = this.audioSource.buffer;
+            let prevData = prevBuffer.getChannelData(0);
+            let playbackBarSpeed = this.app.samplePerDuration / this.app.sampleDensity
+            let emptyData = new Float32Array(Math.round((this.app.playbackTime - this.audioSource.buffer.duration) * playbackBarSpeed * this.blockSize));
+            let data = audioBuffer.getChannelData(0);
+            let newData = this.float32ArrayConcat(prevData, emptyData, data);
+            let newBuffer = this.audioContext.createBuffer(1, newData.length, this.audioContext.sampleRate)
+            newBuffer.copyToChannel(newData, 0);
+
+            let audioBufferSourceNode = this.audioContext.createBufferSource();
+            audioBufferSourceNode.buffer = newBuffer;
+            this.setAudioSource(audioBufferSourceNode)
+            this.setBlockSize(newBuffer.sampleRate)
+
+            for(let i = 0; i < this.numberOfChannels; i++){
+                let channel = new AudioChannel({
+                    track: this,
+                    $trackElement: this.$trackElement,
+                    channelNum: i
+                })
+                this.channels[i] = channel;
+            }
+        }
+        else{
+            let prevBuffer = this.audioSource.buffer;
+            let prevData = prevBuffer.getChannelData(0);
+            let data = audioBuffer.getChannelData(0);
+            let playbackBarSpeed = this.app.samplePerDuration / this.app.sampleDensity
+            let newData = this.float32ArrayConcat(prevData.slice(0, Math.round(this.app.playbackTime * playbackBarSpeed * this.blockSize)), 
+                data, prevData.slice(Math.round(this.app.playbackTime * playbackBarSpeed * this.blockSize) + data.length));
+            let newBuffer = this.audioContext.createBuffer(1, newData.length, this.audioContext.sampleRate)
+            newBuffer.copyToChannel(newData, 0);
+
+            let audioBufferSourceNode = this.audioContext.createBufferSource();
+            audioBufferSourceNode.buffer = newBuffer;
+            this.setAudioSource(audioBufferSourceNode)
+            this.setBlockSize(newBuffer.sampleRate)
+
+            for(let i = 0; i < this.numberOfChannels; i++){
+                let channel = new AudioChannel({
+                    track: this,
+                    $trackElement: this.$trackElement,
+                    channelNum: i
+                })
+                this.channels[i] = channel;
+            }
+        }
+    }
     setAudioSource = audioSource => {//채널 변수와 멤버 수를 초기화
         this.audioSource = audioSource
         this.numberOfChannels = audioSource.buffer.numberOfChannels
@@ -415,7 +491,13 @@ export class AudioTrack{
 
             if(!this.isDarkened){
                 const start = x * blockSize / this.app.sampleDensity;
-                newData = this.float32ArrayConcat(prevData.slice(0, start), pasteData, prevData.slice(start))
+                if(start > prevData.length){
+                    let extendedData = new Float32Array(start - prevData.length);
+                    newData = this.float32ArrayConcat(prevData, extendedData, pasteData)
+                }
+                else{
+                    newData = this.float32ArrayConcat(prevData.slice(0, start), pasteData, prevData.slice(start))
+                }
             }
             else{
                 prevDarken = true
@@ -423,7 +505,13 @@ export class AudioTrack{
                 const x2 = Math.round(((this.selectedX1 < this.selectedX2) ? this.selectedX2 : this.selectedX1) * this.app.sampleDensity)
                 const start = x1 * blockSize
                 const end = x2 * blockSize
-                newData = this.float32ArrayConcat(prevData.slice(0, start), pasteData, prevData.slice(end))
+                if(start > prevData.length){
+                    let extendedData = new Float32Array(start - prevData.length);
+                    newData = this.float32ArrayConcat(prevData, extendedData, pasteData)
+                }
+                else{
+                    newData = this.float32ArrayConcat(prevData.slice(0, start), pasteData, prevData.slice(end))
+                }
             }
 
             if(i === 0){
