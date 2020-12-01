@@ -32,19 +32,35 @@ export class AudioTrack{
         this.$trackElement = document.createElement('div')
         this.$trackElement.className = 'trackElement'
         this.$trackElement.innerHTML = `
-            <div class='trackInterface'>
-                <span style='display: none'>${id}</span>
-                <button class="loadAudio">
-                    <span>Load</span>
-                </button>
-                <button class="muteAudio">
-                    <span>Mute</span>
-                </button>
-                <button class="closeAudio">
-                    <span>X</span>
-                </button>
+            <div class="card bg-dark mb-3">
+                <div class="card-body">
+                    <div class='trackInterface '>
+                        <span style='display: none'>${id}</span>
+                        <div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups">
+                            <div class="btn-group mr-2" role="group">
+                                <button type="button" class="rounded-pill btn btn-secondary btn-sm loadAudio">
+                                    <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-upload" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                        <path fill-rule="evenodd" d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                                        <path fill-rule="evenodd" d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z"/>
+                                    </svg>
+                                </button>
+                                <button type="button" class="rounded-pill btn btn-secondary btn-sm muteAudio">
+                                    <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-volume-mute-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                        <path fill-rule="evenodd" d="M6.717 3.55A.5.5 0 0 1 7 4v8a.5.5 0 0 1-.812.39L3.825 10.5H1.5A.5.5 0 0 1 1 10V6a.5.5 0 0 1 .5-.5h2.325l2.363-1.89a.5.5 0 0 1 .529-.06zm7.137 2.096a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708l4-4a.5.5 0 0 1 .708 0z"/>
+                                        <path fill-rule="evenodd" d="M9.146 5.646a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0z"/>
+                                    </svg>
+                                </button>
+                                <button type="button" class="rounded-pill btn btn-secondary btn-sm closeAudio">
+                                    <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-x" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                        <path fill-rule="evenodd" d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class='trackChannelList'></div>
+                </div>
             </div>
-            <div class='trackChannelList'></div>
             `;
         $trackList.appendChild(this.$trackElement)
         

@@ -37,7 +37,7 @@ export class AudioEffect{
     }
 
     mute = $item => {
-        const id = $item.parentNode.querySelector('span').innerText;
+        const id = $item.parentNode.parentNode.parentNode.querySelector('span').innerText;
         let track = this.app.audioTracks[id];
 
         if(track.isMuted) {
