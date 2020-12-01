@@ -54,6 +54,7 @@ export class AudioTrack{
                 </div>
             </div>
             `;
+      
         $trackList.appendChild(this.$trackElement)
         
         // draw track canvas
