@@ -94,7 +94,7 @@ export class App {
         });
 
         this.recordAudio = new RecordAudio({
-
+            app: this
         })
 
         this.audioEffect = new AudioEffect({
@@ -104,7 +104,7 @@ export class App {
 
     playAudio = () => {
         if(this.isPlaying) return;
-        console.log('play start')
+        console.log('play')
         this.isPlaying = true;
 
         let initial = Object.keys(this.audioTracks)[0];
@@ -123,6 +123,7 @@ export class App {
         }
     }
     pauseAudio = () => {
+        if(!this.isPlaying) return;
         console.log('paused')
         this.isPlaying = false;
         
@@ -265,9 +266,9 @@ export class App {
         }
     }
     deleteTrack = $item => {
-        const id = $item.parentNode.querySelector('span').innerText;
+        const id = $item.parentNode.parentNode.parentNode.querySelector('span').innerText;
         delete this.audioTracks[id];
-        $item.parentNode.parentNode.remove();
+        $item.parentNode.parentNode.parentNode.parentNode.remove();
     }
 
     switchSelectMode = () => {

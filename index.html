@@ -4,107 +4,149 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width initial-scale=1.0">
         <title>TouchSound - Touch and Make Your Own Sound</title>
-        <!-- <style>
-	      html { overflow: hidden; }
-	      body { 
-		      font: 14pt Arial, sans-serif; 
-		      background: black;
-		      display: flex;
-		      flex-direction: column;
-		       height: 100vh;
-		      width: 100%;
-		      margin: 0 0;
-	      }
-	      </style> -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
         <link rel="stylesheet" href="style.css">
     </head>
     <body>
-        <div style='display: flex'>
-            <button class="saveAudio">
-                <span>Save</span>
-            </button>
-            <button class="recordAudio">
-                <span>Record</span>
-            </button>
-            <button class="playAudio">
-                <span>Play</span>
-            </button>
-            <button class="pauseAudio">
-                <span>Pause</span>
-            </button>
-            <button class="stopAudio">
-                <span>Stop</span>
-            </button>
-
-            <div class='adjustBox'>
-                <label class='adjustLabel'>Time</label>
-                <span class='currentTime'>00:00:00</span>
-            </div>
-
-            <!-- <div class='adjustBox'>
-                <button class='adjustLabel'>Loop</button>
-                <input class='loopStart valueAdjust' type="text" value="00:00:00" />
-                <input class='loopEnd valueAdjust' type="text" value="00:00:00" />
-            </div> -->
-
-            <div class='adjustBox'>
-                <label class='adjustLabel'>Zoom</label>
-                <div class='inputUnit'>
-                    <button class='zoomHorizontalIn'>◀▶</button>
-                    <input class='zoomHorizontal valueAdjust' type="text" value="1" />
-                    <button class='zoomHorizontalOut'>▶◀</button>
-                    <button class='zoomVerticalIn'>▼▲</button>
-                    <input class='zoomVertical valueAdjust' type="text" value="1" />
-                    <button class='zoomVerticalOut'>▲▼</button>
+        <style>
+        body{
+            background-color: #1d1e22
+        }
+        </style>
+            <div class="sticky-top">
+                <div style='display: flex'>
+                    <div class="card bg-dark mb-3">
+                        <div class="card-body">
+                            <button class="rounded-circle btn btn-secondary align-middle saveAudio">
+                            <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-download" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                <path fill-rule="evenodd" d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                                <path fill-rule="evenodd" d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+                            </svg>
+                            </button>
+                            <button class="rounded-pill btn btn-secondary recordAudio">
+                                <div class="custom-control custom-switch">
+                                    <input type="checkbox" class="custom-control-input" id="customSwitch1">
+                                    <label class="text-danger font-weight-bold custom-control-label" for="customSwitch1">REC</label>
+                                </div>
+                            </button>
+                            <button class="rounded-circle btn btn-secondary playAudio">
+                                <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-play" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                    <path fill-rule="evenodd" d="M10.804 8L5 4.633v6.734L10.804 8zm.792-.696a.802.802 0 0 1 0 1.392l-6.363 3.692C4.713 12.69 4 12.345 4 11.692V4.308c0-.653.713-.998 1.233-.696l6.363 3.692z"/>
+                                </svg>
+                            </button>
+                            <button class="rounded-circle btn btn-secondary pauseAudio">
+                                <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-pause-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M5.5 3.5A1.5 1.5 0 0 1 7 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5zm5 0A1.5 1.5 0 0 1 12 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5z"/>
+                                </svg>
+                            </button>
+                            <button class="rounded-circle btn btn-secondary stopAudio">
+                                <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-stop-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M5 3.5h6A1.5 1.5 0 0 1 12.5 5v6a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 11V5A1.5 1.5 0 0 1 5 3.5z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+    
+                    <div class="card bg-dark mb-3">
+                        <div class="card-body">
+                            <div class='rounded-pill p-3 mb-2 bg-secondary text-white adjustBox'>
+                                <label class='font-weight-bold adjustLabel'>Time</label>
+                                <span class='font-weight-bold currentTime'>00:00:00</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- <div class='adjustBox'>
+                        <button class='adjustLabel'>Loop</button>
+                        <input class='loopStart valueAdjust' type="text" value="00:00:00" />
+                        <input class='loopEnd valueAdjust' type="text" value="00:00:00" />
+                    </div> -->
+                    <div class="card bg-dark mb-3">
+                        <div class="card-body">
+                            <div class='rounded-pill p-3 mb-2 bg-secondary text-white adjustBox'>
+                                <label class='font-weight-bold adjustLabel'>Zoom</label>
+                                <div class='inputUnit'>
+                                    <button class='btn btn-dark zoomHorizontalIn'>◀▶</button>
+                                    <input class='font-weight-bold zoomHorizontal valueAdjust' type="text" value="1" />
+                                    <button class='btn btn-dark zoomHorizontalOut'>▶◀</button>
+                                    <button class='btn btn-dark zoomVerticalIn'>▼▲</button>
+                                    <input class='font-weight-bold zoomVertical valueAdjust' type="text" value="1" />
+                                    <button class='btn btn-dark zoomVerticalOut'>▲▼</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+    
+                    <div class="card bg-dark mb-3">
+                        <div class="card-body">
+                            <div class="rounded-pill p-3 mb-2 bg-secondary text-white adjustBox">
+                                <label for="modeSelect" class='rounded-pill font-weight-bold adjustLabel'>Edit Mode</label>
+                                <select class='font-weight-bold selectMode inputUnit' name="target">
+                                    <option value="Track">Track</option>
+                                    <option value="Channel">Channel</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card bg-dark mb-3">
+                        <div class="card-body">
+                            <button class="rounded-pill font-weight-bold btn btn-secondary align-middle copyAudio">
+                                <span>Copy</span>
+                            </button>
+                            <button class="rounded-pill btn btn-secondary align-middle cutAudio">
+                                <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-scissors" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                    <path fill-rule="evenodd" d="M3.5 3.5c-.614-.884-.074-1.962.858-2.5L8 7.226 11.642 1c.932.538 1.472 1.616.858 2.5L8.81 8.61l1.556 2.661a2.5 2.5 0 1 1-.794.637L8 9.73l-1.572 2.177a2.5 2.5 0 1 1-.794-.637L7.19 8.61 3.5 3.5zm2.5 10a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm7 0a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/>
+                                </svg>
+                            </button>
+                            <button class="rounded-pill font-weight-bold btn btn-secondary align-middle pasteAudio">
+                                <span>Paste</span>
+                            </button>
+                            <button class="rounded-pill btn btn-secondary align-middle deleteAudio">
+                                <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-trash-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                    <path fill-rule="evenodd" d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5a.5.5 0 0 0-1 0v7a.5.5 0 0 0 1 0v-7z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+    
+                    <div class="card bg-dark mb-3">
+                        <div class="card-body">
+                            <div class='rounded-pill p-3 mb-2 bg-secondary text-white adjustBox'>
+                                <label class='font-weight-bold adjustLabel'>Volume per track</label>
+                                <div class='inputUnit'>
+                                    <button class='font-weight-bold btn btn-dark volumeUp'>+</button>
+                                    <input class='font-weight-bold volume valueAdjust' type="text" value="1" />
+                                    <button class='font-weight-bold btn btn-dark volumeDown'>-</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+    
+                    <div class="card bg-dark mb-3">
+                        <div class="card-body">
+                            <div class='rounded-pill p-3 mb-2 bg-secondary text-white adjustBox'>
+                                <label class='font-weight-bold adjustLabel'>Speed per track</label>
+                                <div class='inputUnit'>
+                                    <button class='font-weight-bold btn btn-dark speedUp'>>>></button>
+                                    <input class='font-weight-bold speed valueAdjust' type="text" value="1" />
+                                    <button class='font-weight-bold btn btn-dark speedDown'>></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
-
-            <div class="adjustBox">
-                <label for="modeSelect" class='adjustLabel'>Edit Mode</label>
-                <select class='selectMode inputUnit' name="target">
-                    <option value="Track">Track</option>
-                    <option value="Channel">Channel</option>
-                </select>
-            </div>
-            
-            <button class="copyAudio">
-                <span>Copy</span>
+            </div>    
+    
+            <div class="trackList"></div>
+    
+            <button class="rounded-pill btn btn-secondary createTrack">
+                <span>+</span>
             </button>
-            <button class="cutAudio">
-                <span>Cut</span>
-            </button>
-            <button class="pasteAudio">
-                <span>Paste</span>
-            </button>
-            <button class="deleteAudio">
-                <span>Delete</span>
-            </button>
-
-            <div class='adjustBox'>
-                <label class='adjustLabel'>Volume per track</label>
-                <div class='inputUnit'>
-                    <button class='volumeUp'>+</button>
-                    <input class='volume valueAdjust' type="text" value="1" />
-                    <button class='volumeDown'>-</button>
-                </div>
-            </div>
-
-            <div class='adjustBox'>
-                <label class='adjustLabel'>Speed per track</label>
-                <div class='inputUnit'>
-                    <button class='speedUp'>>>></button>
-                    <input class='speed valueAdjust' type="text" value="1" />
-                    <button class='speedDown'>></button>
-                </div>
-            </div>
-        </div>
-
-        <div class="trackList"></div>
-
-        <button class="createTrack">
-            <span>+</span>
-        </button>
+        
+        
       
         <script src="main.js" type="module"></script>
+        <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx" crossorigin="anonymous"></script>
     </body>
 </html>

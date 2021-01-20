@@ -10,8 +10,10 @@ export class SaveAudio{
             this.filename = prompt("파일명을 입력하세요.", "output");
             this.soundSource = [];
             this.offlineAudioCtx = [];
+            this.gains = [];
             this.renderedBuffers = [];
             let buffers = [];
+            let maxSampleRate = 0;
             
             for(let i in this.app.audioTracks){
                 let buffer = this.app.audioTracks[i].audioSource.buffer
@@ -19,7 +21,15 @@ export class SaveAudio{
                     alert("저장할 트랙이 없습니다.");
                     return;
                 }
-                buffers.push(buffer)
+                buffers.push(buffer);
+                if(buffer.sampleRate > maxSampleRate){
+                    maxSampleRate = buffer.sampleRate;
+                }
+            }
+            this.maxSampleRate = maxSampleRate;
+            
+            for(let i in this.app.audioTracks){
+                let buffer = this.app.audioTracks[i].audioSource.buffer
                 this.processAudio(buffer, i);
             }
             
@@ -33,39 +43,29 @@ export class SaveAudio{
         })
     }
 
-    mixBuffer = (bufferA, bufferB, ratio, offset) => {    
-        if (ratio == null) ratio = 0.5;
-        var fn = ratio instanceof Function ? ratio : function (a, b) {
-            return a + b // a * (1 - ratio) + b * ratio;
-        };
-    
-        if (offset == null) offset = 0;
-        else if (offset < 0) offset += bufferA.length;
-    
-        for (var channel = 0; channel < bufferA.numberOfChannels; channel++) {
-            var aData = bufferA.getChannelData(channel);
-            var bData = bufferB.getChannelData(channel);
-    
-            for (var i = offset, j = 0; i < bufferA.length && j < bufferB.length; i++, j++) {
-                aData[i] = fn.call(bufferA, aData[i], bData[j], j, channel);
-            }
-        }
-    
-        return bufferA;
-    }
-
     // Process Audio
     processAudio = (buffer, i) => {
-        this.offlineAudioCtx.push(new OfflineAudioContext(buffer.numberOfChannels, buffer.length, buffer.sampleRate));
+        this.offlineAudioCtx.push(new OfflineAudioContext(buffer.numberOfChannels, buffer.length, this.maxSampleRate));
 
         // Audio Buffer Source
         this.soundSource.push(this.offlineAudioCtx[i].createBufferSource());
         this.soundSource[i].buffer = buffer;
     }
 
+    getEffects = i => {
+        this.gains.push(this.offlineAudioCtx[i].createGain());
+        this.gains[i].gain.value = this.app.audioTracks[i].gain.gain.value;
+
+        this.soundSource[i].playbackRate.value = this.app.audioTracks[i].audioSource.playbackRate.value;
+    }
+
     // Connect nodes to destination
     renderAudio = i => {
-        this.soundSource[i].connect(this.offlineAudioCtx[i].destination);
+        this.getEffects(i);
+        
+        this.soundSource[i].connect(this.gains[i]);
+        this.gains[i].connect(this.offlineAudioCtx[i].destination);
+
         if(this.offlineAudioCtx[i].state === 'closed'){
             this.offlineAudioCtx[i].resume()
         }
@@ -77,14 +77,52 @@ export class SaveAudio{
             if(this.renderedBuffers.length === Object.keys(this.app.audioTracks).length){
                 let maxLength = 0;
                 for(let j in this.renderedBuffers){
+                    if(this.offlineAudioCtx[j].length > maxLength) maxLength = this.offlineAudioCtx[j].length;
                     this.mixBuffer(this.mixedBuffer, this.renderedBuffers[j]);
-                    if(this.offlineAudioCtx[j].length > maxLength) maxLength = this.offlineAudioCtx[j].length
                 }
                 this.make_download(this.mixedBuffer, maxLength);
             }
         }).catch(function(err) {
             console.log(err)
         });
+    }
+
+    mixBuffer = (bufferA, bufferB, ratio, offset) => {    
+        if (ratio == null) ratio = 0.5;
+        var fn = ratio instanceof Function ? ratio : function (a, b) {
+            return a + b // a * (1 - ratio) + b * ratio;
+        };
+    
+        if (offset == null) offset = 0;
+        else if (offset < 0) offset += bufferA.length;
+
+        var maxChannels = bufferA.numberOfChannels;
+        if(bufferB.numberOfChannels > maxChannels){
+            maxChannels = bufferB.numberOfChannels;
+        }
+    
+        for (var channel = 0; channel < maxChannels; channel++) {
+            var aData = null;
+            var bData = null;
+            if(channel >= bufferA.numberOfChannels){
+                aData = bufferA.getChannelData(bufferA.numberOfChannels - 1);
+            }
+            else{
+                aData = bufferA.getChannelData(channel);
+            }
+            if(channel >= bufferB.numberOfChannels){
+                bData = bufferB.getChannelData(bufferB.numberOfChannels - 1);
+            }
+            else{
+                bData = bufferB.getChannelData(channel);
+            }
+    
+            for (var i = offset, j = 0; i < bufferA.length && j < bufferB.length; i++, j++) {
+                aData[i] = fn.call(bufferA, aData[i], bData[j], j, channel);
+            }
+        }
+    
+        return bufferA;
     }
 
     // get duration and sample rate
@@ -152,13 +190,4 @@ export class SaveAudio{
         this.pos += 4;
     }
 
-    // Create Compressor Node
-    // createCompressorNode = () => {
-    //     this.compressor = this.offlineAudioCtx.createDynamicsCompressor();
-    //     this.compressor.threshold.setValueAtTime(-20, this.offlineAudioCtx.currentTime);
-    //     this.compressor.knee.setValueAtTime(-30, this.offlineAudioCtx.currentTime);
-    //     this.compressor.ratio.setValueAtTime(5, this.offlineAudioCtx.currentTime);
-    //     this.compressor.attack.setValueAtTime(.05, this.offlineAudioCtx.currentTime);
-    //     this.compressor.release.setValueAtTime(.25, this.offlineAudioCtx.currentTime);
-    // }
 }

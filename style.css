@@ -1,7 +1,7 @@
 .button{
-    width: auto; height: auto;
+    /* width: auto; height: auto;
     max-width: 50px;
-    max-height: 50px;
+    max-height: 50px; */
     
     background-color: transparent;
     border: none;
@@ -10,10 +10,10 @@
 }
 .buttonInTrack{
     display: block;
-    margin-left: auto;
-    margin-right: auto;
+    /* margin-left: auto;
+    margin-right: auto; */
     
-    width: auto; height: auto;
+    /* width: auto; height: auto; */
     max-width: 50px;
     max-height: 50px;
 
@@ -23,25 +23,25 @@
     cursor: pointer;
 }
 
-.adjustBox{
+/* .adjustBox{
     border: solid;
-}
+} */
 .adjustLabel{
     display: block;
     text-align: center;
-    font-size: 3px;
+    /* font-size: 3px; */
     /* margin-left: 10px;
     margin-right: 10px; */
 }
 .inputUnit{
     display: block;
-    max-height: 20px;
+    /* max-height: 20px; */
     /* margin-right: 10px;
     margin-left: 10px; */
 }
 
 .valueAdjust{
-    max-width: 20px;
+    max-width: 40px;
 }
 
 .trackList{

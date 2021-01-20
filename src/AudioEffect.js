@@ -37,20 +37,17 @@ export class AudioEffect{
     }
 
     mute = $item => {
-        const id = $item.parentNode.querySelector('span').innerText;
+        const id = $item.parentNode.parentNode.parentNode.querySelector('span').innerText;
         let track = this.app.audioTracks[id];
 
         if(track.isMuted) {
             track.gain.gain.value = track.mutedVolume;
             track.isMuted = false;
-            $item.innerText = 'Mute';
             return;
         }
         track.mutedVolume = track.gain.gain.value;
         track.gain.gain.value = 0;
         track.isMuted = true;
-        console.log($item.innerText)
-        $item.innerText = 'Muted';
     }
     getTrack = () => {
         if(this.app.selectMode === 'channel'){
@@ -125,8 +122,10 @@ export class AudioEffect{
             
         track.draw(Math.round(track.offsetWidth * prevRate / rate));
         
-        this.app.stopAudio();
-        this.app.playAudio();
+        if(this.app.isPlaying){
+            this.app.pauseAudio();
+            this.app.playAudio();
+        }
     }
     speedUp = () => {
         let track = this.getTrack();
@@ -143,8 +142,10 @@ export class AudioEffect{
             
         track.draw(Math.round(track.offsetWidth * prevRate / rate));
         
-        this.app.pauseAudio();
-        this.app.playAudio();
+        if(this.app.isPlaying){
+            this.app.pauseAudio();
+            this.app.playAudio();
+        }
     }
     speedDown = () => {
         let track = this.getTrack();
@@ -163,7 +164,9 @@ export class AudioEffect{
             
         track.draw(Math.round(track.offsetWidth * prevRate / rate));
         
-        this.app.pauseAudio();
-        this.app.playAudio();
+        if(this.app.isPlaying){
+            this.app.pauseAudio();
+            this.app.playAudio();
+        }
     }
 }

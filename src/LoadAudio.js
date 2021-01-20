@@ -20,7 +20,13 @@ export class LoadAudio{
                 alert("올바른 파일 형식이 아닙니다.");
                 return;
             }
-            file.arrayBuffer()
+            this.loadAudioData(file);
+        };
+        $input.click();
+    }
+
+    loadAudioData = file => {
+        file.arrayBuffer()
             .then(buffer => this.track.audioContext.decodeAudioData(buffer))
             .then(audioBuffer => {
                 console.log(audioBuffer.sampleRate, audioBuffer.length, audioBuffer.duration)
@@ -33,7 +39,22 @@ export class LoadAudio{
                 this.track.draw(width)
             })
             .catch(e => console.log(e));
-        };
-        $input.click();
+    }
+
+    recordAudioData = file => {
+        file.arrayBuffer()
+            .then(buffer => this.track.audioContext.decodeAudioData(buffer))
+            .then(audioBuffer => {
+                console.log(audioBuffer.sampleRate, audioBuffer.length, audioBuffer.duration)
+                if(this.track.app.isPlaying){
+                    this.track.app.stopAudio();
+                }
+                this.track.recordBuffer.call(this.track, audioBuffer)
+                const width = Math.floor(this.track.audioSource.buffer.duration)
+                    * this.track.app.samplePerDuration / this.track.app.sampleDensity + this.track.app.trackPadding * 2 + 1;
+                this.track.draw(width)
+                console.log('haha')
+            })
+            .catch(e => console.log(e));
     }
 }

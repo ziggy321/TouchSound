@@ -25,30 +25,42 @@ export class AudioTrack{
         this.app = app;
         this.trackID = id;
 
-        let color;
-        do{
-            color = Math.round(Math.random() * 0xffffff);
-            this.waveColor = "#" + color.toString(16);
-        }while(color > 0xaaaaaa);
+        this.waveColor = "#" + Math.round(Math.random() * 0x888888).toString(16);
 
         // DOM Components
         const $trackList = document.querySelector('.trackList')
         this.$trackElement = document.createElement('div')
         this.$trackElement.className = 'trackElement'
         this.$trackElement.innerHTML = `
-            <div class='trackInterface'>
-                <span style='display: none'>${id}</span>
-                <button class="loadAudio">
-                    <span>Load</span>
-                </button>
-                <button class="muteAudio">
-                    <span>Mute</span>
-                </button>
-                <button class="closeAudio">
-                    <span>X</span>
-                </button>
+            <div class="card bg-dark mb-3">
+                <div class="card-body">
+                    <div class='trackInterface '>
+                        <span style='display: none'>${id}</span>
+                        <div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups">
+                            <div class="btn-group mr-2" role="group">
+                                <button type="button" class="rounded-pill btn btn-secondary btn-sm loadAudio">
+                                    <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-upload" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                        <path fill-rule="evenodd" d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                                        <path fill-rule="evenodd" d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z"/>
+                                    </svg>
+                                </button>
+                                <button type="button" class="rounded-pill btn btn-secondary btn-sm muteAudio">
+                                    <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-volume-mute-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                        <path fill-rule="evenodd" d="M6.717 3.55A.5.5 0 0 1 7 4v8a.5.5 0 0 1-.812.39L3.825 10.5H1.5A.5.5 0 0 1 1 10V6a.5.5 0 0 1 .5-.5h2.325l2.363-1.89a.5.5 0 0 1 .529-.06zm7.137 2.096a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708l4-4a.5.5 0 0 1 .708 0z"/>
+                                        <path fill-rule="evenodd" d="M9.146 5.646a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0z"/>
+                                    </svg>
+                                </button>
+                                <button type="button" class="rounded-pill btn btn-secondary btn-sm closeAudio">
+                                    <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-x" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                        <path fill-rule="evenodd" d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class='trackChannelList'></div>
+                </div>
             </div>
-            <div class='trackChannelList'></div>
             `;
         $trackList.appendChild(this.$trackElement)
         
@@ -76,7 +88,15 @@ export class AudioTrack{
             this.copyWave.call(this)
             this.deleteWave.call(this)
         })
-        this.$pasteButton.addEventListener('click', this.pasteWave.bind(this))
+        this.$pasteButton.addEventListener('click', () => {
+            this.pasteWave.call(this);
+            // if(this.numberOfChannels === 0 || this.app.copiedBuffer.sampleRate === this.audioSource.buffer.sampleRate){
+            //     this.pasteWave.call(this);
+            // }
+            // else{
+            //     this.convertSampleRateThenPasteWave();
+            // }
+        });
         this.$deleteButton.addEventListener('click', this.deleteWave.bind(this))
         
         // initialize audio context
@@ -124,12 +144,13 @@ export class AudioTrack{
             this.borderTrack();
         }
 
+        this.channelHeight = (this.$canvas.height - this.app.trackPadding * (this.numberOfChannels + 1)) / this.numberOfChannels;
+
         // draw wave
         for(let i = 0; i < this.numberOfChannels; i++){
             let channel = this.channels[i];
             
-            channel.draw(this.offsetWidth - this.app.trackPadding * 2, 
-                (this.offsetHeight - this.app.trackPadding * 2 - this.numberOfChannels - 1) / this.numberOfChannels)
+            channel.draw(this.offsetWidth - this.app.trackPadding * 2, this.channelHeight);
         }
         
         if(this.isDarkened){
@@ -176,6 +197,82 @@ export class AudioTrack{
                 channelNum: i
             })
             this.channels.push(channel)
+        }
+    }
+    recordBuffer = audioBuffer => {
+
+        if(!this.audioSource.buffer){
+            this.setBlockSize(audioBuffer.sampleRate);
+            
+            let playbackBarSpeed = this.app.samplePerDuration / this.app.sampleDensity
+            let emptyData = new Float32Array(Math.round(this.app.playbackTime * playbackBarSpeed) * this.blockSize);
+            let data = audioBuffer.getChannelData(0);
+            let newData = this.float32ArrayConcat(emptyData, data);
+            console.log(emptyData.length, data.length, newData.length)
+            let newBuffer = this.audioContext.createBuffer(1, newData.length, this.audioContext.sampleRate)
+            newBuffer.copyToChannel(newData, 0);
+
+            let audioBufferSourceNode = this.audioContext.createBufferSource();
+            audioBufferSourceNode.buffer = newBuffer;
+            this.setAudioSource(audioBufferSourceNode)
+            this.setBlockSize(newBuffer.sampleRate)
+
+            for(let i = 0; i < this.numberOfChannels; i++){
+                let channel = new AudioChannel({
+                    track: this,
+                    $trackElement: this.$trackElement,
+                    channelNum: i
+                })
+                this.channels.push(channel)
+            }
+        }
+        else if(this.app.playbackTime > this.audioSource.buffer.duration){
+            let prevBuffer = this.audioSource.buffer;
+            let prevData = prevBuffer.getChannelData(0);
+            let playbackBarSpeed = this.app.samplePerDuration / this.app.sampleDensity
+            let emptyData = new Float32Array(Math.round((this.app.playbackTime - this.audioSource.buffer.duration) * playbackBarSpeed * this.blockSize));
+            let data = audioBuffer.getChannelData(0);
+            let newData = this.float32ArrayConcat(prevData, emptyData, data);
+            let newBuffer = this.audioContext.createBuffer(1, newData.length, this.audioContext.sampleRate)
+            newBuffer.copyToChannel(newData, 0);
+
+            let audioBufferSourceNode = this.audioContext.createBufferSource();
+            audioBufferSourceNode.buffer = newBuffer;
+            this.setAudioSource(audioBufferSourceNode)
+            this.setBlockSize(newBuffer.sampleRate)
+
+            for(let i = 0; i < this.numberOfChannels; i++){
+                let channel = new AudioChannel({
+                    track: this,
+                    $trackElement: this.$trackElement,
+                    channelNum: i
+                })
+                this.channels[i] = channel;
+            }
+        }
+        else{
+            let prevBuffer = this.audioSource.buffer;
+            let prevData = prevBuffer.getChannelData(0);
+            let data = audioBuffer.getChannelData(0);
+            let playbackBarSpeed = this.app.samplePerDuration / this.app.sampleDensity
+            let newData = this.float32ArrayConcat(prevData.slice(0, Math.round(this.app.playbackTime * playbackBarSpeed * this.blockSize)), 
+                data, prevData.slice(Math.round(this.app.playbackTime * playbackBarSpeed * this.blockSize) + data.length));
+            let newBuffer = this.audioContext.createBuffer(1, newData.length, this.audioContext.sampleRate)
+            newBuffer.copyToChannel(newData, 0);
+
+            let audioBufferSourceNode = this.audioContext.createBufferSource();
+            audioBufferSourceNode.buffer = newBuffer;
+            this.setAudioSource(audioBufferSourceNode)
+            this.setBlockSize(newBuffer.sampleRate)
+
+            for(let i = 0; i < this.numberOfChannels; i++){
+                let channel = new AudioChannel({
+                    track: this,
+                    $trackElement: this.$trackElement,
+                    channelNum: i
+                })
+                this.channels[i] = channel;
+            }
         }
     }
     setAudioSource = audioSource => {//채널 변수와 멤버 수를 초기화
@@ -266,12 +363,20 @@ export class AudioTrack{
         this.cancelDarkenSelection(this.selectedX1, this.selectedX2);
         this.selectedX2 = Math.round(window.event.clientX - this.$canvas.getBoundingClientRect().left); //Update the current position X
         if(this.selectedX2 === this.selectedX1){
+            if(this.app.isPlaying){
+                this.app.wasPlaying = true;
+                this.app.pauseAudio();
+            }
             for(var i in this.app.audioTracks){
                 let track = this.app.audioTracks[i];
                 track.playAudio.drawPlaybackBar(this.selectedX2);
                 let playbackBarSpeed = (track.app.samplePerDuration / track.app.sampleDensity);
                 track.app.playbackTime = this.selectedX2 / playbackBarSpeed;
                 track.app.$currentTime.innerText = new Date(track.app.playbackTime * 1000).toISOString().substr(11, 8);
+            }
+            if(this.app.wasPlaying){
+                this.app.wasPlaying = false;
+                this.app.playAudio();
             }
 
             this.selectedX1 = 0;
@@ -281,7 +386,7 @@ export class AudioTrack{
         else{
             this.darkenSelection(this.selectedX1, this.selectedX2);
         }
-    };    
+    };
     borderTrack = () => {
         this.canvasCtx.fillStyle = 'rgb(255, 0, 0)'; // draw wave with canvas
         this.canvasCtx.fillRect(0, -this.$canvas.height/2, this.$canvas.width, 2);
@@ -382,29 +487,17 @@ export class AudioTrack{
 
         if(this.app.copiedBuffer.numberOfChannels !== this.numberOfChannels){
             if(this.numberOfChannels === 0){
-                this.loadBuffer(this.app.copiedBuffer)
+                this.loadBuffer(this.app.copiedBuffer);
+                const width = Math.floor(this.audioSource.buffer.duration)
+                    * this.app.samplePerDuration / this.app.sampleDensity + this.app.trackPadding * 2 + 1;
+                this.draw(width)
+                return;
             }
             else{
                 alert("채널 수가 같은 트랙에만 붙여넣기 가능합니다.")
                 return;
             }
         }
-
-        // if(this.app.copiedBuffer.sampleRate !== this.audioSource.buffer.sampleRate){
-        //     let c = new OfflineAudioContext(this.app.copiedBuffer.numberOfChannels, this.app.copiedBuffer.length, 
-        //         this.audioSource.buffer.sampleRate);
-        //     let b = c.createBuffer(this.app.copiedBuffer.numberOfChannels, this.app.copiedBuffer.length, 
-        //         this.app.copiedBuffer.sampleRate);
-        //     b = this.app.copiedBuffer;
-        //     let s = c.createBufferSource();
-        //     s.buffer = b;
-        //     s.connect(c.destination);
-        //     s.start();
-        //     c.startRendering().then(function (result) {
-        //         this.app.copiedBuffer = result;
-        //         this.pasteWave();
-        //     });
-        // }
 
         let prevData, pasteData, newData, newBuffer, prevDarken = false;
         const blockSize = this.blockSize
@@ -414,7 +507,13 @@ export class AudioTrack{
 
             if(!this.isDarkened){
                 const start = x * blockSize / this.app.sampleDensity;
-                newData = this.float32ArrayConcat(prevData.slice(0, start), pasteData, prevData.slice(start))
+                if(start > prevData.length){
+                    let extendedData = new Float32Array(start - prevData.length);
+                    newData = this.float32ArrayConcat(prevData, extendedData, pasteData)
+                }
+                else{
+                    newData = this.float32ArrayConcat(prevData.slice(0, start), pasteData, prevData.slice(start))
+                }
             }
             else{
                 prevDarken = true
@@ -422,7 +521,13 @@ export class AudioTrack{
                 const x2 = Math.round(((this.selectedX1 < this.selectedX2) ? this.selectedX2 : this.selectedX1) * this.app.sampleDensity)
                 const start = x1 * blockSize
                 const end = x2 * blockSize
-                newData = this.float32ArrayConcat(prevData.slice(0, start), pasteData, prevData.slice(end))
+                if(start > prevData.length){
+                    let extendedData = new Float32Array(start - prevData.length);
+                    newData = this.float32ArrayConcat(prevData, extendedData, pasteData)
+                }
+                else{
+                    newData = this.float32ArrayConcat(prevData.slice(0, start), pasteData, prevData.slice(end))
+                }
             }
 
             if(i === 0){
@@ -470,5 +575,36 @@ export class AudioTrack{
             offset += arr.length;
         }
         return result;
+    }
+
+    convertSampleRateThenPasteWave = () => {
+        if(this.app.selectMode === 'channel') return;
+        if(this.app.selectedTrackID !== this.trackID || !this.app.copiedBuffer) {
+            return;
+        }
+
+        if(this.app.copiedBuffer.numberOfChannels !== this.numberOfChannels){
+            if(this.numberOfChannels === 0){
+                this.loadBuffer(this.app.copiedBuffer)
+            }
+            else{
+                alert("채널 수가 같은 트랙에만 붙여넣기 가능합니다.")
+                return;
+            }
+        }
+        
+        let c = new OfflineAudioContext(this.app.copiedBuffer.numberOfChannels, this.app.copiedBuffer.length, 
+            this.audioSource.buffer.sampleRate);
+        let b = c.createBuffer(this.app.copiedBuffer.numberOfChannels, this.app.copiedBuffer.length, 
+            this.app.copiedBuffer.sampleRate);
+        b = this.app.copiedBuffer;
+        let s = c.createBufferSource();
+        s.buffer = b;
+        s.connect(c.destination);
+        s.start();
+        c.startRendering().then(function (result) {
+            this.app.copiedBuffer = result;
+            this.pasteWave();
+        });
     }
 }

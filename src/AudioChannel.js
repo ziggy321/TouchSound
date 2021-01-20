@@ -14,8 +14,8 @@ export class AudioChannel{
         // setup channel canvas
         this.$canvas = document.createElement('canvas');
         this.$canvas.className = 'channelBackground';
-        this.channelHeight = (track.$canvas.height - 4 - (track.numberOfChannels - 1)*2) / track.numberOfChannels
-        this.top = 2 + (this.channelHeight + 2) * channelNum;
+        this.channelHeight = this.track.channelHeight;
+        this.top = 2 + (this.channelHeight + this.track.app.trackPadding) * channelNum;
         this.$canvas.style = `
             z-index: 2;
             position: absolute;
@@ -83,27 +83,27 @@ export class AudioChannel{
             this.canvasCtx.fillStyle = 'rgb(200, 200, 200)';
             this.canvasCtx.fillRect(0, 0, this.$canvas.width, this.$canvas.height);
             
-            this.canvasCtx.translate(0, this.offsetHeight / 2 + this.padding); // Set Y = 0 to be in the middle of the canvas
+            this.canvasCtx.translate(0, this.offsetHeight)
         }
         if(h !== this.offsetHeight){
-            const channelHeight = (this.track.$canvas.height - 4 - (this.track.numberOfChannels - 1)*2) / this.track.numberOfChannels
-            const top = 2 + (channelHeight + 2) * this.channelNum;
+            this.channelHeight = this.track.channelHeight;
+            this.top = 2 + (this.channelHeight + this.track.app.trackPadding) * this.channelNum;
             this.$canvas.style = `
                 z-index: 2;
                 position: absolute;
                 left: 2px;
-                top: ${top}px;
+                top: ${this.top}px;
             `;
 
             this.offsetHeight = h;
 
-            this.$canvas.height = (this.offsetHeight + this.padding * 2)// * this.dpr;
+            this.$canvas.height = this.offsetHeight
 
             this.canvasCtx.clearRect(0, 0, this.$canvas.width, this.$canvas.height);
             this.canvasCtx.fillStyle = 'rgb(200, 200, 200)';
             this.canvasCtx.fillRect(0, 0, this.$canvas.width, this.$canvas.height);
             
-            this.canvasCtx.translate(0, this.offsetHeight / 2 + this.padding); // Set Y = 0 to be in the middle of the canvas
+            this.canvasCtx.translate(0, this.offsetHeight / 2)
         }
 
         if(this.track.app.selectMode === 'channel' &&
@@ -179,12 +179,20 @@ export class AudioChannel{
         this.cancelDarkenSelection(this.selectedX1, this.selectedX2);
         this.selectedX2 = Math.round(window.event.clientX - this.$canvas.getBoundingClientRect().left); //Update the current position X
         if(this.selectedX2 === this.selectedX1){
+            if(this.track.app.isPlaying){
+                this.track.app.wasPlaying = true;
+                this.track.app.pauseAudio();
+            }
             for(var i in this.track.app.audioTracks){
                 let track = this.track.app.audioTracks[i];
                 track.playAudio.drawPlaybackBar(this.selectedX2);
                 let playbackBarSpeed = (track.app.samplePerDuration / track.app.sampleDensity);
                 track.app.playbackTime = this.selectedX2 / playbackBarSpeed;
                 track.app.$currentTime.innerText = new Date(track.app.playbackTime * 1000).toISOString().substr(11, 8);
+            }
+            if(this.track.app.wasPlaying){
+                this.track.app.wasPlaying = false;
+                this.track.app.playAudio();
             }
 
             this.selectedX1 = 0;
@@ -197,6 +205,7 @@ export class AudioChannel{
     };
 
     borderChannel = () => {
+        console.log('borderChannel')
         this.track.canvasCtx.fillStyle = 'rgb(0, 0, 255)'; // draw wave with canvas
         this.track.canvasCtx.fillRect(0, -this.track.$canvas.height/2 + this.top - 2, this.track.$canvas.width, 2);
         this.track.canvasCtx.fillRect(0, -this.track.$canvas.height/2 + this.top - 2, 2, this.channelHeight + 2);
@@ -210,6 +219,7 @@ export class AudioChannel{
         this.track.canvasCtx.fillRect(this.track.$canvas.width - 2, -this.track.$canvas.height/2 + this.top, 2, this.channelHeight + 2);
         this.track.canvasCtx.fillRect(0, -this.track.$canvas.height/2 + this.top + this.channelHeight - 1, this.track.$canvas.width, 4);
     }
+
     darkenSelection = (x1, x2) => {
         if(x1 === x2) return;
         let left = (x1 < x2) ? x1 : x2
@@ -299,7 +309,13 @@ export class AudioChannel{
 
         if(!this.isDarkened){
             const start = x * blockSize
-            newData = this.float32ArrayConcat(prevData.slice(0, start), pasteData, prevData.slice(start))
+            if(start > prevData.length){
+                let extendedData = new Float32Array(start - prevData.length);
+                newData = this.float32ArrayConcat(prevData, extendedData, pasteData)
+            }
+            else{
+                newData = this.float32ArrayConcat(prevData.slice(0, start), pasteData, prevData.slice(start))
+            }
         }
         else{
             prevDarken = true
@@ -307,7 +323,13 @@ export class AudioChannel{
             const x2 = ((this.selectedX1 < this.selectedX2) ? this.selectedX2 : this.selectedX1) * this.track.app.sampleDensity;
             const start = x1 * blockSize
             const end = x2 * blockSize
-            newData = this.float32ArrayConcat(prevData.slice(0, start), pasteData, prevData.slice(end))
+            if(start > prevData.length){
+                let extendedData = new Float32Array(start - prevData.length);
+                newData = this.float32ArrayConcat(prevData, extendedData, pasteData)
+            }
+            else{
+                newData = this.float32ArrayConcat(prevData.slice(0, start), pasteData, prevData.slice(end))
+            }
         }
 
         newBuffer = this.track.audioContext.createBuffer(this.track.numberOfChannels, 
