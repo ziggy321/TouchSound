@@ -225,7 +225,7 @@ export class AudioChannel{
         let left = (x1 < x2) ? x1 : x2
         let width = (x1 < x2) ? x2 - x1 : x1 - x2
 
-        this.canvasCtx.fillStyle = 'rgb(180, 180, 180)'; // draw wave with canvas
+        this.canvasCtx.fillStyle = 'rgb(150, 150, 150)'; // draw wave with canvas
         this.canvasCtx.fillRect(left,-this.$canvas.height/2,width,this.$canvas.height);
         this.isDarkened = true;
 

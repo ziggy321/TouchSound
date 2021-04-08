@@ -266,7 +266,7 @@ export class App {
     deleteTrack = $item => {
         const id = $item.parentNode.parentNode.parentNode.querySelector('span').innerText;
         delete this.audioTracks[id];
-        $item.parentNode.parentNode.parentNode.parentNode.remove();
+        $item.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.remove();
     }
 
     switchSelectMode = () => {

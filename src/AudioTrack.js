@@ -414,7 +414,7 @@ export class AudioTrack{
         for(let i = 0; i < this.numberOfChannels; i++){
             let $canvas = this.channels[i].$canvas;
             let ctx = this.channels[i].canvasCtx;
-            ctx.fillStyle = 'rgb(180, 180, 180)'; // draw wave with canvas
+            ctx.fillStyle = 'rgb(150, 150, 150)'; // draw wave with canvas
             ctx.fillRect(left,-$canvas.height/2,width,$canvas.height);
         }
     }
