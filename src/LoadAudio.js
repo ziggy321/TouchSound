@@ -25,35 +25,27 @@ export class LoadAudio{
         $input.click();
     }
 
-    loadAudioData = file => {
+    loadAudioData = (file, record) => {
         file.arrayBuffer()
-            .then(buffer => this.track.audioContext.decodeAudioData(buffer))
-            .then(audioBuffer => {
-                console.log(audioBuffer.sampleRate, audioBuffer.length, audioBuffer.duration)
-                if(this.track.app.isPlaying){
-                    this.track.app.stopAudio();
-                }
-                this.track.loadBuffer.call(this.track, audioBuffer)
-                const width = Math.floor(this.track.audioSource.buffer.duration)
-                    * this.track.app.samplePerDuration / this.track.app.sampleDensity + this.track.app.trackPadding * 2 + 1;
-                this.track.draw(width)
+            .then(buffer => {
+                return this.track.audioContext.decodeAudioData(buffer)
             })
-            .catch(e => console.log(e));
-    }
-
-    recordAudioData = file => {
-        file.arrayBuffer()
-            .then(buffer => this.track.audioContext.decodeAudioData(buffer))
             .then(audioBuffer => {
                 console.log(audioBuffer.sampleRate, audioBuffer.length, audioBuffer.duration)
                 if(this.track.app.isPlaying){
                     this.track.app.stopAudio();
                 }
-                this.track.recordBuffer.call(this.track, audioBuffer)
+
+                if(!record){
+                    this.track.loadBuffer.call(this.track, audioBuffer)
+                }
+                else{
+                    this.track.recordBuffer.call(this.track, audioBuffer)
+                }
+                
                 const width = Math.floor(this.track.audioSource.buffer.duration)
                     * this.track.app.samplePerDuration / this.track.app.sampleDensity + this.track.app.trackPadding * 2 + 1;
                 this.track.draw(width)
-                console.log('haha')
             })
             .catch(e => console.log(e));
     }

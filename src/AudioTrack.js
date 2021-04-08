@@ -25,7 +25,8 @@ export class AudioTrack{
         this.app = app;
         this.trackID = id;
 
-        this.waveColor = "#" + Math.round(Math.random() * 0x888888).toString(16);
+        // this.waveColor = "#" + Math.round(Math.random() * 0x888888).toString(16);
+        this.waveColor = "#" + Math.round(Math.random() * 0x000000).toString(16);
 
         // DOM Components
         const $trackList = document.querySelector('.trackList')
@@ -34,9 +35,9 @@ export class AudioTrack{
         this.$trackElement.innerHTML = `
             <div class="card bg-dark mb-3">
                 <div class="card-body">
-                    <div class='trackInterface '>
+                    <div class='trackInterface'>
                         <span style='display: none'>${id}</span>
-                        <div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups">
+                        <div class="btn-toolbar btn-group mr-2" role="group" role="toolbar" aria-label="Toolbar with button groups">
                             <div class="btn-group mr-2" role="group">
                                 <button type="button" class="rounded-pill btn btn-secondary btn-sm loadAudio">
                                     <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-upload" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
@@ -184,6 +185,10 @@ export class AudioTrack{
         // this.masterGain.connect(this.masterCompression);
     }
     loadBuffer = audioBuffer => {
+        if(this.audioSource.buffer && this.numberOfChannels != audioBuffer.numberOfChannels){
+            alert('채널 수가 다릅니다.');
+            return;
+        }
         let audioBufferSourceNode = this.audioContext.createBufferSource();
         audioBufferSourceNode.buffer = audioBuffer;
         this.setAudioSource(audioBufferSourceNode)

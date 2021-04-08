@@ -34,8 +34,6 @@ export class App {
     defaultHeight = 151;
 
     constructor(){
-        // this.playbackBarSpeed = this.samplePerDuration / this.sampleDensity; // default
-
         this.$trackList = document.querySelector('.trackList')
 
         const $playAudio = document.querySelector('.playAudio');
