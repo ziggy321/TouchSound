@@ -1,16 +1,37 @@
 # TouchSound
-   
-프로젝트 설명
+--------------------
+<br/>
+
+## TouchSound Project Description
 -------------
-웹 오디오 에디터
-   
-실행 방법
----------
-   
-TouchSound 디렉토리에서 명령 프롬프트로 live-server로 실행한다. 
-   
-기능 설명
----------
+
+<img src="https://user-images.githubusercontent.com/46099642/114053045-8b6da800-98c9-11eb-8ba9-eccd36f3ac38.JPG">
+<br/>
+Web Audio Editor 웹 오디오 에디터
+
+## Development Environment
+---------------------
+
+- Visual Studio Code
+- Language: Javascript (ECMAScript 6)
+- Chrome Browser
+<br/>
+
+## Live Server Installation for Execution
+---------------------
+
+<img src="https://user-images.githubusercontent.com/46099642/114054249-a7257e00-98ca-11eb-800a-f4864e3613ff.JPG">
+<br/>
+
+Install Live Server
+Then execute TouchSound with the command below in the project directory
+
+```
+live-server
+```
+
+## Application Execution Flow
+---------------------
    
 1. 다중 트랙 지원   
 여러 음원을 함께 업로드하여 한꺼번에 작업할 수 있습니다.
