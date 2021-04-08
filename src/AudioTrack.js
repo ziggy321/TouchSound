@@ -25,8 +25,7 @@ export class AudioTrack{
         this.app = app;
         this.trackID = id;
 
-        // this.waveColor = "#" + Math.round(Math.random() * 0x888888).toString(16);
-        this.waveColor = "#" + Math.round(Math.random() * 0x000000).toString(16);
+        this.waveColor = "#" + Math.round(Math.random() * 0x888888).toString(16);
 
         // DOM Components
         const $trackList = document.querySelector('.trackList')
