@@ -56,7 +56,7 @@ export class RecordAudio {
                         const audioUrl = URL.createObjectURL(audioBlob);
                         const load = () => {
                             let track = this.app.audioTracks[this.app.selectedTrackID];
-                            track.loadAudio.recordAudioData(audioBlob);
+                            track.loadAudio.loadAudioData(audioBlob, true);
                         }
                         resolve({ audioBlob, audioUrl, load });
                     }); 
