@@ -5,9 +5,11 @@
 ## TouchSound Project Description
 -------------
 
+Web Audio Editor 웹 오디오 에디터
+<br/>
+<br/>
 <img src="https://user-images.githubusercontent.com/46099642/114053045-8b6da800-98c9-11eb-8ba9-eccd36f3ac38.JPG">
 <br/>
-Web Audio Editor 웹 오디오 에디터
 
 ## Development Environment
 ---------------------
