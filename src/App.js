@@ -80,7 +80,7 @@ export class App {
         document.addEventListener('click', event => {
             document.querySelectorAll('.closeAudio').forEach($item => {
                 if($item.contains(event.target)){
-                    this.deleteTrack.call(this, $item);
+                    this.closeTrack.call(this, $item);
                 }
             })
         })
@@ -263,10 +263,10 @@ export class App {
             }, 1);
         }
     }
-    deleteTrack = $item => {
-        const id = $item.parentNode.parentNode.parentNode.querySelector('span').innerText;
+    closeTrack = $item => {
+        const id = $item.closest('.trackInterface').querySelector('span').innerText;
         delete this.audioTracks[id];
-        $item.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.remove();
+        $item.closest('.trackElement').remove();
     }
 
     switchSelectMode = () => {

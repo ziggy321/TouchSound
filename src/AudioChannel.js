@@ -82,8 +82,6 @@ export class AudioChannel{
             this.canvasCtx.clearRect(0, 0, this.$canvas.width, this.$canvas.height);
             this.canvasCtx.fillStyle = 'rgb(200, 200, 200)';
             this.canvasCtx.fillRect(0, 0, this.$canvas.width, this.$canvas.height);
-            
-            this.canvasCtx.translate(0, this.offsetHeight)
         }
         if(h !== this.offsetHeight){
             this.channelHeight = this.track.channelHeight;
@@ -102,8 +100,6 @@ export class AudioChannel{
             this.canvasCtx.clearRect(0, 0, this.$canvas.width, this.$canvas.height);
             this.canvasCtx.fillStyle = 'rgb(200, 200, 200)';
             this.canvasCtx.fillRect(0, 0, this.$canvas.width, this.$canvas.height);
-            
-            this.canvasCtx.translate(0, this.offsetHeight / 2)
         }
 
         if(this.track.app.selectMode === 'channel' &&
@@ -226,7 +222,7 @@ export class AudioChannel{
         let width = (x1 < x2) ? x2 - x1 : x1 - x2
 
         this.canvasCtx.fillStyle = 'rgb(150, 150, 150)'; // draw wave with canvas
-        this.canvasCtx.fillRect(left,-this.$canvas.height/2,width,this.$canvas.height);
+        this.canvasCtx.fillRect(left,0,width,this.$canvas.height);
         this.isDarkened = true;
 
         // if(this.track.app.selectMode === 'channel' &&
@@ -240,7 +236,7 @@ export class AudioChannel{
         let width = (x1 < x2) ? x2 - x1 : x1 - x2
         
         this.canvasCtx.fillStyle = 'rgb(200, 200, 200)'; // draw wave with canvas
-        this.canvasCtx.fillRect(left,-this.$canvas.height/2,width,this.$canvas.height);
+        this.canvasCtx.fillRect(left,0,width,this.$canvas.height);
         this.isDarkened = false;
 
         // if(this.track.app.selectMode === 'channel' &&
