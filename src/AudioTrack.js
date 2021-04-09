@@ -408,27 +408,31 @@ export class AudioTrack{
     darkenSelection = (x1, x2) => {
         if(x1 === x2) return;
         this.isDarkened = true;
-        let left = (x1 < x2) ? x1 : x2
-        let width = (x1 < x2) ? x2 - x1 : x1 - x2
+        // let left = (x1 < x2) ? x1 : x2
+        // let width = (x1 < x2) ? x2 - x1 : x1 - x2
 
         for(let i = 0; i < this.numberOfChannels; i++){
-            let $canvas = this.channels[i].$canvas;
-            let ctx = this.channels[i].canvasCtx;
-            ctx.fillStyle = 'rgb(150, 150, 150)'; // draw wave with canvas
-            ctx.fillRect(left,-$canvas.height/2,width,$canvas.height);
+            this.channels[i].darkenSelection(x1, x2);
+            // let $canvas = this.channels[i].$canvas;
+            // let ctx = this.channels[i].canvasCtx;
+            // ctx.fillStyle = 'rgb(150, 150, 150)'; // draw wave with canvas
+            // console.log(-$canvas.height/2)
+            // ctx.fillRect(left,-$canvas.height/2,width,$canvas.height);
+            // ctx.fillRect(left,-$canvas.height/2,width,$canvas.height);
         }
     }
     cancelDarkenSelection = (x1, x2) => {
         if(x1 === x2) return;
         this.isDarkened = false;
-        let left = (x1 < x2) ? x1 : x2
-        let width = (x1 < x2) ? x2 - x1 : x1 - x2
+        // let left = (x1 < x2) ? x1 : x2
+        // let width = (x1 < x2) ? x2 - x1 : x1 - x2
 
         for(let i = 0; i < this.numberOfChannels; i++){
-            let $canvas = this.channels[i].$canvas;
-            let ctx = this.channels[i].canvasCtx;
-            ctx.fillStyle = 'rgb(200, 200, 200)'; // draw wave with canvas
-            ctx.fillRect(left,-$canvas.height,width,$canvas.height * 2);
+            this.channels[i].cancelDarkenSelection(x1, x2);
+            // let $canvas = this.channels[i].$canvas;
+            // let ctx = this.channels[i].canvasCtx;
+            // ctx.fillStyle = 'rgb(200, 200, 200)'; // draw wave with canvas
+            // ctx.fillRect(left,-$canvas.height,width,$canvas.height * 2);
         }
     }
     copyWave = () => {
@@ -437,8 +441,6 @@ export class AudioTrack{
             return;
         }
         if(this.selectedX1 === this.selectedX2) return;
-
-        console.log(Math.abs(this.selectedX2 - this.selectedX1))
 
         const x1 = Math.round(((this.selectedX1 < this.selectedX2) ? this.selectedX1 : this.selectedX2) * this.app.sampleDensity);
         const x2 = Math.round(((this.selectedX1 < this.selectedX2) ? this.selectedX2 : this.selectedX1) * this.app.sampleDensity);
