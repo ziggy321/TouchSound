@@ -33,7 +33,7 @@ Then execute TouchSound with the command below in the project directory
 live-server
 ```
 
-## Application 
+## Application Specification
 ---------------------
 
 TouchSound는 다중 트랙을 지원합니다. 여러 음원을 함께 업로드하여 한꺼번에 작업할 수 있습니다.
