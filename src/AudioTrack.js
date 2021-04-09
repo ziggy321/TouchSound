@@ -32,7 +32,7 @@ export class AudioTrack{
         this.$trackElement = document.createElement('div')
         this.$trackElement.className = 'trackElement'
         this.$trackElement.innerHTML = `
-            <div class="card bg-dark mb-3">
+            <div class="bg-dark mb-3">
                 <div class="card-body">
                     <div class='trackInterface'>
                         <span style='display: none'>${id}</span>
