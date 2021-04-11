@@ -43,7 +43,7 @@ export class LoadAudio{
                     this.track.recordBuffer.call(this.track, audioBuffer)
                 }
                 
-                const width = Math.floor(this.track.audioSource.buffer.duration)
+                const width = Math.ceil(this.track.audioSource.buffer.duration)
                     * this.track.app.samplePerDuration / this.track.app.sampleDensity + this.track.app.trackPadding * 2 + 1;
                 this.track.draw(width)
             })
